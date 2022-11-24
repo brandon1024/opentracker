@@ -54,10 +54,10 @@ struct ot_accesslist {
   ot_time        base;
   ot_accesslist *next;
 };
-static ot_accesslist * g_accesslist = NULL;
+static ot_accesslist * _Atomic g_accesslist = NULL;
 #ifdef WANT_DYNAMIC_ACCESSLIST
-static ot_accesslist * g_accesslist_add = NULL;
-static ot_accesslist * g_accesslist_delete = NULL;
+static ot_accesslist * _Atomic g_accesslist_add = NULL;
+static ot_accesslist * _Atomic g_accesslist_delete = NULL;
 #endif
 
 /* Helpers to work on access lists */
@@ -232,7 +232,7 @@ static void * accesslist_worker( void * args ) {
 
 #ifdef WANT_DYNAMIC_ACCESSLIST
 static pthread_t thread_adder_id, thread_deleter_id;
-static void * accesslist_adddel_worker(char * fifoname, ot_accesslist ** adding_to, ot_accesslist ** removing_from) {
+static void * accesslist_adddel_worker(char * fifoname, ot_accesslist * _Atomic * adding_to, ot_accesslist * _Atomic * removing_from) {
   struct stat st;
 
   if (!stat(fifoname, &st)) {
@@ -297,13 +297,14 @@ printf("parsed info_hash %20s\n", info_hash);
           }
         }
       }
-      accesslist_clean(*removing_from);
 
       /* Simple case: there's no adding_to list yet, create one with one member */
       if (!*adding_to) {
-        *adding_to = accesslist_make(NULL, 1);
-        if (*adding_to)
-          memcpy((*adding_to)->list, info_hash, sizeof(ot_hash));
+        ot_accesslist * accesslist_new = accesslist_make(NULL, 1);
+        if (accesslist_new) {
+          memcpy(accesslist_new->list, info_hash, sizeof(ot_hash));
+          *adding_to = accesslist_new;
+        }
       } else {
         int exactmatch = 0;
         ot_hash * insert_point = binary_search( info_hash, (*adding_to)->list, (*adding_to)->size, OT_HASH_COMPARE_SIZE, sizeof(ot_hash), &exactmatch );
@@ -320,7 +321,6 @@ printf("parsed info_hash %20s\n", info_hash);
           }
         }
       }
-      accesslist_clean(*adding_to);
 
       pthread_mutex_unlock(&g_accesslist_mutex);
     }
