@@ -15,6 +15,7 @@
 void accesslist_init( void );
 void accesslist_deinit( void );
 int  accesslist_hashisvalid( ot_hash hash );
+void accesslist_cleanup( void );
 
 extern char *g_accesslist_filename;
 #ifdef WANT_DYNAMIC_ACCESSLIST

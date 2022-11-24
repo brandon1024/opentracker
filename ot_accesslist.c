@@ -369,6 +369,18 @@ void accesslist_deinit( void ) {
   pthread_cancel( thread_id );
   pthread_mutex_destroy(&g_accesslist_mutex);
 }
+
+void accesslist_cleanup( void ) {
+  pthread_mutex_lock(&g_accesslist_mutex);
+
+  accesslist_clean(g_accesslist);
+#if WANT_DYNAMIC_ACCESSLIST
+  accesslist_clean(g_accesslist_add);
+  accesslist_clean(g_accesslist_delete);
+#endif
+
+  pthread_mutex_unlock(&g_accesslist_mutex);
+}
 #endif
 
 int address_in_net( const ot_ip6 address, const ot_net *net ) {
