@@ -12,11 +12,15 @@
 
 #if defined ( WANT_ACCESSLIST_BLACK ) || defined (WANT_ACCESSLIST_WHITE )
 #define WANT_ACCESSLIST
-void accesslist_init( );
-void accesslist_deinit( );
+void accesslist_init( void );
+void accesslist_deinit( void );
 int  accesslist_hashisvalid( ot_hash hash );
 
 extern char *g_accesslist_filename;
+#ifdef WANT_DYNAMIC_ACCESSLIST
+extern char *g_accesslist_pipe_add;
+extern char *g_accesslist_pipe_delete;
+#endif
 
 #else
 #define accesslist_init( accesslist_filename )
