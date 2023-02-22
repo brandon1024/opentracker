@@ -6,7 +6,7 @@
 #ifndef OT_ACCESSLIST_H__
 #define OT_ACCESSLIST_H__
 
-#if defined ( WANT_ACCESSLIST_BLACK ) && defined (WANT_ACCESSLIST_WHITE )
+#if defined ( WANT_ACCESSLIST_BLACK ) && defined ( WANT_ACCESSLIST_WHITE )
 #  error WANT_ACCESSLIST_BLACK and WANT_ACCESSLIST_WHITE are exclusive.
 #endif
 
@@ -24,6 +24,10 @@ extern char *g_accesslist_pipe_delete;
 #endif
 
 #else
+#ifdef WANT_DYNAMIC_ACCESSLIST
+#  error WANT_DYNAMIC_ACCESSLIST needs either WANT_ACCESSLIST_BLACK or WANT_ACCESSLIST_WHITE
+#endif
+
 #define accesslist_init( accesslist_filename )
 #define accesslist_deinit( )
 #define accesslist_hashisvalid( hash ) 1
