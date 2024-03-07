@@ -177,6 +177,9 @@ static void handle_read( const int64 sock, struct ot_workstruct *ws ) {
     return;
   }
 
+  if( byte_count == -1)
+    return;
+
   /* If we get the whole request in one packet, handle it without copying */
   if( !array_start( &cookie->request ) ) {
     if( ( ws->header_size = header_complete( ws->inbuf, byte_count ) ) ) {
