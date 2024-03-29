@@ -385,10 +385,10 @@ void accesslist_cleanup( void ) {
 #endif
 
 int address_in_net( const ot_ip6 address, const ot_net *net ) {
-  int bits = net->bits;
+  int bits = net->bits, checkbits = ( 0x7f00 >> ( bits & 7 ));
   int result = memcmp( address, &net->address, bits >> 3 );
   if( !result && ( bits & 7 ) )
-    result = ( ( 0x7f00 >> ( bits & 7 ) ) & address[bits>>3] ) - net->address[bits>>3];
+    result = ( checkbits & address[bits>>3] ) - ( checkbits & net->address[bits>>3]);
   return result == 0;
 }
 
