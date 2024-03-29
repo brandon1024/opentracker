@@ -259,8 +259,12 @@ static size_t return_peers_selection( struct ot_workstruct *ws, ot_peerlist *pee
 }
 
 /* Compiles a list of random peers for a torrent
-   * reply must have enough space to hold 92+6*amount bytes
-   * does not yet check not to return self
+   * Reply must have enough space to hold:
+   * 92 + 6 * amount bytes for TCP/IPv4
+   * 92 + 18 * amount bytes for TCP/IPv6
+   * 12 + 6 * amount bytes for UDP/IPv4
+   * 12 + 18 * amount bytes for UDP/IPv6
+   * Does not yet check not to return self
 */
 size_t return_peers_for_torrent( struct ot_workstruct * ws, ot_torrent *torrent, size_t amount, char *reply, PROTO_FLAG proto ) {
   ot_peerlist *peer_list = torrent->peer_list;

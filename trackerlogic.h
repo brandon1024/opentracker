@@ -44,6 +44,13 @@ typedef struct { ot_ip6 address; int bits; }
 
 #define OT_CLIENT_REQUEST_INTERVAL_RANDOM ( OT_CLIENT_REQUEST_INTERVAL - OT_CLIENT_REQUEST_VARIATION/2 + (int)( nrand48(ws->rand48_state) % OT_CLIENT_REQUEST_VARIATION ) )
 
+/* List of peers should fit in a single UDP packet (around 1200 bytes) */
+#ifdef WANT_V6
+#define OT_MAX_PEERS_UDP 66
+#else
+#define OT_MAX_PEERS_UDP 200
+#endif
+
 /* If WANT_MODEST_FULLSCRAPES is on, ip addresses may not
    fullscrape more frequently than this amount in seconds */
 #define OT_MODEST_PEER_TIMEOUT (60*5)

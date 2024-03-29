@@ -141,9 +141,9 @@ int handle_udp6( int64 serversocket, struct ot_workstruct *ws ) {
       /* We do only want to know, if it is zero */
       left  = inpacket[64/4] | inpacket[68/4];
 
-      /* Limit amount of peers to 200 */
+      /* Limit amount of peers to OT_MAX_PEERS_UDP */
       numwant = ntohl( inpacket[92/4] );
-      if (numwant > 200) numwant = 200;
+      if (numwant > OT_MAX_PEERS_UDP) numwant = OT_MAX_PEERS_UDP;
 
       event    = ntohl( inpacket[80/4] );
       port     = *(uint16_t*)( ((char*)inpacket) + 96 );
