@@ -518,7 +518,7 @@ int accesslist_bless_net( ot_net *net, ot_permissions permissions ) {
   if( g_admin_nets_count >= OT_ADMINIP_MAX )
     return -1;
 
-  memcpy(g_admin_nets + g_admin_nets_count, &net, sizeof(ot_net));
+  memcpy(g_admin_nets + g_admin_nets_count, net, sizeof(ot_net));
   g_admin_nets_permissions[ g_admin_nets_count++ ] = permissions;
 
 #ifdef _DEBUG
