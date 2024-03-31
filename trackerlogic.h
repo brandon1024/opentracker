@@ -27,9 +27,12 @@ typedef struct { ot_ip6 address; int bits; }
 #ifdef WANT_V6
 #define OT_IP_SIZE 16
 #define PEERS_BENCODED "6:peers6"
+/* List of peers should fit in a single UDP packet (around 1200 bytes) */
+#define OT_MAX_PEERS_UDP 66
 #else
 #define OT_IP_SIZE 4
 #define PEERS_BENCODED "5:peers"
+#define OT_MAX_PEERS_UDP 200
 #endif
 
 /* Some tracker behaviour tunable */
@@ -43,13 +46,6 @@ typedef struct { ot_ip6 address; int bits; }
 #define OT_TORRENT_TIMEOUT      (60*OT_TORRENT_TIMEOUT_HOURS)
 
 #define OT_CLIENT_REQUEST_INTERVAL_RANDOM ( OT_CLIENT_REQUEST_INTERVAL - OT_CLIENT_REQUEST_VARIATION/2 + (int)( nrand48(ws->rand48_state) % OT_CLIENT_REQUEST_VARIATION ) )
-
-/* List of peers should fit in a single UDP packet (around 1200 bytes) */
-#ifdef WANT_V6
-#define OT_MAX_PEERS_UDP 66
-#else
-#define OT_MAX_PEERS_UDP 200
-#endif
 
 /* If WANT_MODEST_FULLSCRAPES is on, ip addresses may not
    fullscrape more frequently than this amount in seconds */
@@ -79,9 +75,7 @@ extern volatile int g_opentracker_running;
 extern uint32_t g_tracker_id;
 typedef enum { FLAG_TCP, FLAG_UDP, FLAG_MCA, FLAG_SELFPIPE } PROTO_FLAG;
 
-typedef struct {
-  uint8_t data[OT_IP_SIZE+2+2];
-} ot_peer;
+typedef uint8_t ot_peer[OT_IP_SIZE+2+2];
 static const uint8_t PEER_FLAG_SEEDING   = 0x80;
 static const uint8_t PEER_FLAG_COMPLETED = 0x40;
 static const uint8_t PEER_FLAG_STOPPED   = 0x20;
