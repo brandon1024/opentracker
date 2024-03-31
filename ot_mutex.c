@@ -205,11 +205,11 @@ int64 mutex_workqueue_popresult( int *iovec_entries, struct iovec ** iovec ) {
     if ((*task)->tasktype == TASK_DONE) {
       struct ot_task *ptask = *task;
 
-      *iovec_entries = (*task)->iovec_entries;
-      *iovec         = (*task)->iovec;
-      sock           = (*task)->sock;
+      *iovec_entries = ptask->iovec_entries;
+      *iovec         = ptask->iovec;
+      sock           = ptask->sock;
 
-      *task = (*task)->next;
+      *task = ptask->next;
       free( ptask );
       break;
     }
