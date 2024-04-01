@@ -34,6 +34,9 @@ typedef struct { ot_ip6 address; int bits; }
 #define PEERS_BENCODED "5:peers"
 #define OT_MAX_PEERS_UDP 200
 #endif
+#define OT_PORT_SIZE 2
+#define OT_FLAG_SIZE 1
+#define OT_TIME_SIZE 1
 
 /* Some tracker behaviour tunable */
 #define OT_CLIENT_TIMEOUT 30
@@ -75,7 +78,9 @@ extern volatile int g_opentracker_running;
 extern uint32_t g_tracker_id;
 typedef enum { FLAG_TCP, FLAG_UDP, FLAG_MCA, FLAG_SELFPIPE } PROTO_FLAG;
 
-typedef uint8_t ot_peer[OT_IP_SIZE+2+2];
+#define OT_PEER_COMPARE_SIZE ((OT_IP_SIZE)+(OT_PORT_SIZE))
+#define OT_PEER_SIZE ((OT_TIME_SIZE)+(OT_FLAG_SIZE)+(OT_PEER_COMPARE_SIZE))
+typedef uint8_t ot_peer[OT_PEER_SIZE];
 static const uint8_t PEER_FLAG_SEEDING   = 0x80;
 static const uint8_t PEER_FLAG_COMPLETED = 0x40;
 static const uint8_t PEER_FLAG_STOPPED   = 0x20;
@@ -92,7 +97,6 @@ static const uint8_t PEER_FLAG_LEECHING  = 0x00;
 #define OT_PEERTIME(peer)     (((uint8_t*)(peer))[(OT_IP_SIZE)+3])
 
 #define OT_HASH_COMPARE_SIZE (sizeof(ot_hash))
-#define OT_PEER_COMPARE_SIZE ((OT_IP_SIZE)+2)
 
 struct ot_peerlist;
 typedef struct ot_peerlist ot_peerlist;
