@@ -613,9 +613,8 @@ int main( int argc, char **argv ) {
   char * statefile = 0;
 
   memset( serverip, 0, sizeof(ot_ip6) );
-#ifndef WANT_V6
+#ifdef WANT_V4_ONLY
   serverip[10]=serverip[11]=-1;
-  noipv6=1;
 #endif
 
 #ifdef WANT_DEV_RANDOM

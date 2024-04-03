@@ -558,7 +558,6 @@ int main( int argc, char **argv ) {
 #else
   g_tracker_id = random();
 #endif
-  noipv6=1;
 
   while( scanon ) {
     switch( getopt( argc, argv, ":l:c:L:h" ) ) {

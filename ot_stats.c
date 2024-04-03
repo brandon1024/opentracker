@@ -73,13 +73,13 @@ static time_t ot_start_time;
 #define __LDR(P,D)   ((__BYTE((P),(D))>>__SHFT((D)))&__MSK)
 #define __STR(P,D,V)   __BYTE((P),(D))=(__BYTE((P),(D))&~(__MSK<<__SHFT((D))))|((V)<<__SHFT((D)))
 
-//#ifdef WANT_V6
-//#define STATS_NETWORK_NODE_MAXDEPTH  (68-STATS_NETWORK_NODE_BITWIDTH)
-//#define STATS_NETWORK_NODE_LIMIT     (48-STATS_NETWORK_NODE_BITWIDTH)
-//#else
+#if 0
+// XXX
+#define STATS_NETWORK_NODE_MAXDEPTH  (68-STATS_NETWORK_NODE_BITWIDTH)
+#define STATS_NETWORK_NODE_LIMIT     (48-STATS_NETWORK_NODE_BITWIDTH)
+#endif
 #define STATS_NETWORK_NODE_MAXDEPTH  (28-STATS_NETWORK_NODE_BITWIDTH)
 #define STATS_NETWORK_NODE_LIMIT     (24-STATS_NETWORK_NODE_BITWIDTH)
-//#endif
 
 typedef union stats_network_node stats_network_node;
 union stats_network_node {
@@ -202,9 +202,10 @@ static size_t stats_return_busy_networks( char * reply, stats_network_node *tree
   for( i=amount-1; i>=0; --i) {
     if( scores[i] ) {
       r += sprintf( r, "%08zd: ", scores[i] );
-#ifdef WANT_V6
+//#ifdef WANT_V6
       r += fmt_ip6c( r, networks[i] );
-#else
+#if 0
+    // XXX
       r += fmt_ip4( r, networks[i]);
 #endif
       *r++ = '\n';
@@ -675,9 +676,9 @@ void stats_issue_event( ot_status_event event, PROTO_FLAG proto, uintptr_t event
           *peerid_hex=0;
         }
 
-#ifdef WANT_V6
         ip_readable[ fmt_ip6c( ip_readable, (char*)&ws->peer ) ] = 0;
-#else
+#if 0
+        /* XXX */
         ip_readable[ fmt_ip4( ip_readable, (char*)&ws->peer ) ] = 0;
 #endif
         syslog( LOG_INFO, "time=%s event=completed info_hash=%s peer_id=%s ip=%s", timestring, hash_hex, peerid_hex, ip_readable );
