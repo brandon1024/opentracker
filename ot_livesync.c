@@ -127,13 +127,13 @@ static void livesync_handle_peersync( struct ot_workstruct *ws ) {
 
   /* Now basic sanity checks have been done on the live sync packet
      We might add more testing and logging. */
-  while( off + (ssize_t)sizeof( ot_hash ) + (ssize_t)sizeof( ot_peer ) <= ws->request_size ) {
-    memcpy( &ws->peer, ws->request + off + sizeof(ot_hash), sizeof( ot_peer ) );
+  while( off + (ssize_t)sizeof( ot_hash ) + OT_PEER_SIZE4 <= ws->request_size ) {
+    memcpy( &ws->peer, ws->request + off + sizeof(ot_hash), OT_PEER_SIZE4 );
     ws->hash = (ot_hash*)(ws->request + off);
 
     if( !g_opentracker_running ) return;
 
-    if( OT_PEERFLAG(&ws->peer) & PEER_FLAG_STOPPED )
+    if( OT_PEERFLAG(ws->peer) & PEER_FLAG_STOPPED )
       remove_peer_from_torrent( FLAG_MCA, ws );
     else
       add_peer_to_torrent_and_return_peers( FLAG_MCA, ws, /* amount = */ 0 );
@@ -143,7 +143,7 @@ static void livesync_handle_peersync( struct ot_workstruct *ws ) {
 
   stats_issue_event(EVENT_SYNC, 0,
                     (ws->request_size - sizeof( g_tracker_id ) - sizeof( uint32_t ) ) /
-                    ((ssize_t)sizeof( ot_hash ) + (ssize_t)sizeof( ot_peer )));
+                    ((ssize_t)sizeof( ot_hash ) + OT_PEER_SIZE4));
 }
 
 /* Tickle the live sync module from time to time, so no events get
@@ -164,9 +164,9 @@ void livesync_tell( struct ot_workstruct *ws ) {
   pthread_mutex_lock(&g_outbuf_mutex);
 
   memcpy( g_outbuf + g_outbuf_data, ws->hash, sizeof(ot_hash) );
-  memcpy( g_outbuf + g_outbuf_data + sizeof(ot_hash), &ws->peer, sizeof(ot_peer) );
+  memcpy( g_outbuf + g_outbuf_data + sizeof(ot_hash), &ws->peer, OT_PEER_SIZE4 );
 
-  g_outbuf_data += sizeof(ot_hash) + sizeof(ot_peer);
+  g_outbuf_data += sizeof(ot_hash) + OT_PEER_SIZE4;
 
   if( g_outbuf_data >= LIVESYNC_OUTGOING_BUFFSIZE_PEERS - LIVESYNC_OUTGOING_WATERMARK_PEERS )
     livesync_issue_peersync();

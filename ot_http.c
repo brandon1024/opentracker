@@ -421,26 +421,18 @@ static ssize_t http_handle_announce( const int64 sock, struct ot_workstruct *ws,
     ot_ip6 proxied_ip;
     char *fwd = http_header( ws->request, ws->header_size, "x-forwarded-for" );
     if( fwd && scan_ip6( fwd, proxied_ip ) ) {
-      /* If proxy reports an ipv6 address but we can only handle v4 (or vice versa), bail out */
-#ifndef WANT_V6
-      if( !ip6_isv4mapped(proxied_ip) )
-#else
-      if( ip6_isv4mapped(proxied_ip) )
-#endif
-        HTTPERROR_400_PARAM;
-
-      OT_SETIP( &ws->peer, proxied_ip );
+      OT_SETIP( ws->peer, proxied_ip );
     } else
-      OT_SETIP( &ws->peer, cookie->ip );
+      OT_SETIP( ws->peer, cookie->ip );
   } else
 #endif
-  OT_SETIP( &ws->peer, cookie->ip );
+  OT_SETIP( ws->peer, cookie->ip );
 
   ws->peer_id = NULL;
   ws->hash = NULL;
 
-  OT_SETPORT( &ws->peer, &port );
-  OT_PEERFLAG( &ws->peer ) = 0;
+  OT_SETPORT( ws->peer, &port );
+  OT_PEERFLAG( ws->peer ) = 0;
   numwant = 50;
   scanon = 1;
 
