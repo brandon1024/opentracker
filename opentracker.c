@@ -331,16 +331,6 @@ static void * server_mainloop( void * args ) {
 static int64_t ot_try_bind( ot_ip6 ip, uint16_t port, PROTO_FLAG proto ) {
   int64 sock = proto == FLAG_TCP ? socket_tcp6( ) : socket_udp6( );
 
-#ifndef WANT_V6
-  if( !ip6_isv4mapped(ip) ) {
-    exerr( "V4 Tracker is V4 only!" );
-  }
-#else
-  if( ip6_isv4mapped(ip) ) {
-    exerr( "V6 Tracker is V6 only!" );
-  }
-#endif
-
 #ifdef _DEBUG
   {
   char *protos[] = {"TCP","UDP","UDP mcast"};
