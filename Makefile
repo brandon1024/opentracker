@@ -1,7 +1,5 @@
 # $Id$
 
-CC?=gcc
-
 # Linux flavour
 # PREFIX?=/opt/diet
 # LIBOWFAT_HEADERS=$(PREFIX)/include
