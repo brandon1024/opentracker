@@ -50,7 +50,7 @@ OPTS_debug=-D_DEBUG -g -ggdb # -pg -fprofile-arcs -ftest-coverage
 OPTS_production=-O3
 
 CFLAGS+=-I$(LIBOWFAT_HEADERS) -Wall -pipe -Wextra #-ansi -pedantic
-LDFLAGS+=-L$(LIBOWFAT_LIBRARY) -lowfat -pthread -lpthread -lz
+LDFLAGS+=-L$(LIBOWFAT_LIBRARY) -lowfat -pthread -lz
 #LDFLAGS+=-lbsd
 
 BINARY =opentracker
