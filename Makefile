@@ -49,7 +49,7 @@ FEATURES+=-DWANT_FULLSCRAPE
 OPTS_debug=-D_DEBUG -g -ggdb # -pg -fprofile-arcs -ftest-coverage
 OPTS_production=-O3
 
-CFLAGS+=-I$(LIBOWFAT_HEADERS) -Wall -pipe -Wextra #-ansi -pedantic
+CFLAGS+=-I$(LIBOWFAT_HEADERS) -Wall -pipe -pthread -Wextra #-ansi -pedantic
 LDFLAGS+=-L$(LIBOWFAT_LIBRARY) -lowfat -pthread -lz
 #LDFLAGS+=-lbsd
 
