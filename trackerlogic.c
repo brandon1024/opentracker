@@ -78,13 +78,13 @@ void add_torrent_from_saved_state( ot_hash const hash, ot_time base, size_t down
 }
 
 size_t add_peer_to_torrent_and_return_peers( PROTO_FLAG proto, struct ot_workstruct *ws, size_t amount ) {
-  int          exactmatch, delta_torrentcount = 0;
-  ot_torrent  *torrent;
-  ot_peer     *peer_dest;
-  ot_vector   *torrents_list = mutex_bucket_lock_by_hash( *ws->hash );
-  ot_peerlist *peer_list;
-  size_t       peer_size; /* initialized in next line */
-  ot_peer     *peer_src = peer_from_peer6(&ws->peer, &peer_size);
+  int           exactmatch, delta_torrentcount = 0;
+  ot_torrent   *torrent;
+  ot_peer      *peer_dest;
+  ot_vector    *torrents_list = mutex_bucket_lock_by_hash( *ws->hash );
+  ot_peerlist  *peer_list;
+  size_t        peer_size; /* initialized in next line */
+  ot_peer const *peer_src = peer_from_peer6(&ws->peer, &peer_size);
 
   if( !accesslist_hashisvalid( *ws->hash ) ) {
     mutex_bucket_unlock_by_hash( *ws->hash, 0 );
@@ -378,12 +378,12 @@ size_t return_tcp_scrape_for_torrent( ot_hash const *hash_list, int amount, char
 
 static ot_peerlist dummy_list;
 size_t remove_peer_from_torrent( PROTO_FLAG proto, struct ot_workstruct *ws ) {
-  int          exactmatch;
-  ot_vector   *torrents_list = mutex_bucket_lock_by_hash( *ws->hash );
-  ot_torrent  *torrent = binary_search( ws->hash, torrents_list->data, torrents_list->size, sizeof( ot_torrent ), OT_HASH_COMPARE_SIZE, &exactmatch );
-  ot_peerlist *peer_list = &dummy_list;
-  size_t       peer_size; /* initialized in next line */
-  ot_peer     *peer_src = peer_from_peer6(&ws->peer, &peer_size);
+  int            exactmatch;
+  ot_vector     *torrents_list = mutex_bucket_lock_by_hash( *ws->hash );
+  ot_torrent    *torrent = binary_search( ws->hash, torrents_list->data, torrents_list->size, sizeof( ot_torrent ), OT_HASH_COMPARE_SIZE, &exactmatch );
+  ot_peerlist   *peer_list = &dummy_list;
+  size_t         peer_size; /* initialized in next line */
+  ot_peer const *peer_src = peer_from_peer6(&ws->peer, &peer_size);
 
 #ifdef WANT_SYNC_LIVE
   if( proto != FLAG_MCA ) {
