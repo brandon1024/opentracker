@@ -8,6 +8,7 @@
 #include <string.h>
 #include <strings.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /* Opentracker */
 #include "trackerlogic.h"
