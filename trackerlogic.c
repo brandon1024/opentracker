@@ -45,7 +45,7 @@ void free_peerlist( ot_peerlist *peer_list ) {
   free( peer_list );
 }
 
-void add_torrent_from_saved_state( ot_hash hash, ot_time base, size_t down_count ) {
+void add_torrent_from_saved_state( ot_hash const hash, ot_time base, size_t down_count ) {
   int         exactmatch;
   ot_torrent *torrent;
   ot_vector  *torrents_list = mutex_bucket_lock_by_hash( hash );
@@ -317,7 +317,7 @@ size_t return_peers_for_torrent( struct ot_workstruct * ws, ot_torrent *torrent,
 }
 
 /* Fetches scrape info for a specific torrent */
-size_t return_udp_scrape_for_torrent( ot_hash hash, char *reply ) {
+size_t return_udp_scrape_for_torrent( ot_hash const hash, char *reply ) {
   int          exactmatch, delta_torrentcount = 0;
   ot_vector   *torrents_list = mutex_bucket_lock_by_hash( hash );
   ot_torrent  *torrent = binary_search( hash, torrents_list->data, torrents_list->size, sizeof( ot_torrent ), OT_HASH_COMPARE_SIZE, &exactmatch );
@@ -343,17 +343,17 @@ size_t return_udp_scrape_for_torrent( ot_hash hash, char *reply ) {
 }
 
 /* Fetches scrape info for a specific torrent */
-size_t return_tcp_scrape_for_torrent( ot_hash *hash_list, int amount, char *reply ) {
+size_t return_tcp_scrape_for_torrent( ot_hash const *hash_list, int amount, char *reply ) {
   char *r = reply;
   int   exactmatch, i;
 
   r += sprintf( r, "d5:filesd" );
 
   for( i=0; i<amount; ++i ) {
-    int          delta_torrentcount = 0;
-    ot_hash     *hash = hash_list + i;
-    ot_vector   *torrents_list = mutex_bucket_lock_by_hash( *hash );
-    ot_torrent  *torrent = binary_search( hash, torrents_list->data, torrents_list->size, sizeof( ot_torrent ), OT_HASH_COMPARE_SIZE, &exactmatch );
+    int            delta_torrentcount = 0;
+    ot_hash const *hash = hash_list + i;
+    ot_vector     *torrents_list = mutex_bucket_lock_by_hash( *hash );
+    ot_torrent    *torrent = binary_search( hash, torrents_list->data, torrents_list->size, sizeof( ot_torrent ), OT_HASH_COMPARE_SIZE, &exactmatch );
 
     if( exactmatch ) {
       if( clean_single_torrent( torrent ) ) {

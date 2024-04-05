@@ -82,7 +82,7 @@ typedef enum { FLAG_TCP, FLAG_UDP, FLAG_MCA, FLAG_SELFPIPE } PROTO_FLAG;
 #define OT_PEER_SIZE6 ((OT_TIME_SIZE)+(OT_FLAG_SIZE)+(OT_PEER_COMPARE_SIZE6))
 #define OT_PEER_SIZE4 ((OT_TIME_SIZE)+(OT_FLAG_SIZE)+(OT_PEER_COMPARE_SIZE4))
 
-typedef uint8_t ot_peer[1];
+typedef uint8_t ot_peer[1]; /* Generic pointer to a v6 or v4 peer */
 typedef uint8_t ot_peer6[OT_PEER_SIZE6];
 typedef uint8_t ot_peer4[OT_PEER_SIZE4];
 static const uint8_t PEER_FLAG_SEEDING   = 0x80;
@@ -96,11 +96,11 @@ ot_peer *peer_from_peer6(ot_peer6 *peer, size_t *peer_size);
 size_t   peer_size_from_peer6(ot_peer6 *peer);
 
 /* New style */
-#define OT_SETIP(peer,ip)              memcpy((peer),(ip),OT_IP_SIZE6)
+#define OT_SETIP(peer,ip)              memcpy((uint8_t*)(peer),(ip),OT_IP_SIZE6)
 #define OT_SETPORT(peer,port)          memcpy(((uint8_t*)(peer))+(OT_IP_SIZE6),(port),2)
 #define OT_PEERFLAG(peer)             (((uint8_t*)(peer))[(OT_IP_SIZE6)+2])
-#define OT_PEERFLAG_D(peer,peersize)   (((uint8_t*)(peer))[(peersize)-2])
-#define OT_PEERTIME(peer,peersize)     (((uint8_t*)(peer))[(peersize)-1])
+#define OT_PEERFLAG_D(peer,peersize)  (((uint8_t*)(peer))[(peersize)-2])
+#define OT_PEERTIME(peer,peersize)    (((uint8_t*)(peer))[(peersize)-1])
 
 #define PEERS_BENCODED6 "6:peers6"
 #define PEERS_BENCODED4 "5:peers"
@@ -187,9 +187,9 @@ void exerr( char * message );
    otherwise it is released in return_peers_for_torrent */
 size_t  add_peer_to_torrent_and_return_peers( PROTO_FLAG proto, struct ot_workstruct *ws, size_t amount );
 size_t  remove_peer_from_torrent( PROTO_FLAG proto, struct ot_workstruct *ws );
-size_t  return_tcp_scrape_for_torrent( ot_hash *hash, int amount, char *reply );
-size_t  return_udp_scrape_for_torrent( ot_hash hash, char *reply );
-void    add_torrent_from_saved_state( ot_hash hash, ot_time base, size_t down_count );
+size_t  return_tcp_scrape_for_torrent( ot_hash const *hash_list, int amount, char *reply );
+size_t  return_udp_scrape_for_torrent( ot_hash const hash, char *reply );
+void    add_torrent_from_saved_state( ot_hash const hash, ot_time base, size_t down_count );
 
 /* torrent iterator */
 void iterate_all_torrents( int (*for_each)( ot_torrent* torrent, uintptr_t data ), uintptr_t data );
