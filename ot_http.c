@@ -573,8 +573,8 @@ ssize_t http_handle_request( const int64 sock, struct ot_workstruct *ws ) {
           g_logchain_first = g_logchain_last = log;
         else {
           g_logchain_last->next = log;
-          g_logchain_last = log;  
-        }        
+          g_logchain_last = log;
+        }
       } else
         free( log );
     }
