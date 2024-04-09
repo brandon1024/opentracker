@@ -444,7 +444,7 @@ size_t remove_peer_from_torrent( PROTO_FLAG proto, struct ot_workstruct *ws ) {
   ot_peerlist   *peer_list = &dummy_list;
   size_t         peer_size; /* initialized in next line */
   ot_peer const *peer_src = peer_from_peer6(&ws->peer, &peer_size);
-  size_t         peer_count, seed_count;
+  size_t         peer_count = 0, seed_count = 0;
 
 #ifdef WANT_SYNC_LIVE
   if( proto != FLAG_MCA ) {
@@ -460,10 +460,11 @@ size_t remove_peer_from_torrent( PROTO_FLAG proto, struct ot_workstruct *ws ) {
       case 1:  peer_list->peer_count--; /* Intentional fallthrough */
       default: break;
     }
+
+    peer_count = torrent->peer_list6->peer_count + torrent->peer_list4->peer_count;
+    seed_count = torrent->peer_list6->seed_count + torrent->peer_list4->seed_count;
   }
 
-  peer_count = torrent->peer_list6->peer_count + torrent->peer_list4->peer_count;
-  seed_count = torrent->peer_list6->seed_count + torrent->peer_list4->seed_count;
 
   if( proto == FLAG_TCP ) {
     int erval = OT_CLIENT_REQUEST_INTERVAL_RANDOM;
