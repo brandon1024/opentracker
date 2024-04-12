@@ -79,6 +79,7 @@ static void defaul_signal_handlers( void ) {
   sigaddset (&signal_mask, SIGPIPE);
   sigaddset (&signal_mask, SIGHUP);
   sigaddset (&signal_mask, SIGINT);
+  sigaddset (&signal_mask, SIGALRM);
   pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
 }
 
@@ -90,7 +91,7 @@ static void install_signal_handlers( void ) {
   sa.sa_handler = signal_handler;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_RESTART;
-  if ((sigaction(SIGINT, &sa, NULL) == -1))
+  if ((sigaction(SIGINT, &sa, NULL) == -1) || (sigaction(SIGALRM, &sa, NULL) == -1) )
     panic( "install_signal_handlers" );
 
   sigaddset (&signal_mask, SIGINT);
@@ -208,15 +209,23 @@ static void handle_read( const int64 sock, struct ot_workstruct *ws ) {
 static void handle_write( const int64 sock ) {
   struct http_data* cookie=io_getcookie( sock );
   size_t i;
+  int    chunked = 0;
 
   /* Look for the first io_batch still containing bytes to write */
-  if( cookie )
-    for( i = 0; i < cookie->batches; ++i )
+  if( cookie ) {
+    if( cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER )
+      chunked = 1;
+
+    for( i = 0; i < cookie->batches; ++i ) {
+      fprintf(stderr, "handle_write inspects batch %d of %d (bytes left: %d)\n", i, cookie->batches, cookie->batch[i].bytesleft);
       if( cookie->batch[i].bytesleft ) {
         int64 res = iob_send( sock, cookie->batch + i );
 
-        if( res == -3 )
-          break;
+        fprintf(stderr, "handle_write yields res %lld when trying to iob_send\n", res);
+        if( res == -3 ) {
+          handle_dead( sock );
+          return;
+        }
 
         if( !cookie->batch[i].bytesleft )
           continue;
@@ -224,8 +233,17 @@ static void handle_write( const int64 sock ) {
         if( res == -1 || res > 0 || i < cookie->batches - 1 )
           return;
       }
+    }
+  }
 
-  handle_dead( sock );
+  /* In a chunked transfer after all batches accumulated have been sent, wait for the next one */
+  if( chunked ) {
+//fprintf( stderr, "handle_write is STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER => dont want write on sock %lld\n", sock);
+    //io_dontwantwrite( sock );
+  } else {
+fprintf( stderr, "handle_write is STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER => handle dead on sock %lld\n", sock);
+    handle_dead( sock );
+  }
 }
 
 static void handle_accept( const int64 serversocket ) {
@@ -266,7 +284,7 @@ static void * server_mainloop( void * args ) {
   struct ot_workstruct ws;
   time_t next_timeout_check = g_now_seconds + OT_CLIENT_TIMEOUT_CHECKINTERVAL;
   struct iovec *iovector;
-  int    iovec_entries;
+  int    iovec_entries, is_partial;
 
   (void)args;
 
@@ -305,8 +323,8 @@ static void * server_mainloop( void * args ) {
         handle_read( sock, &ws );
     }
 
-    while( ( sock = mutex_workqueue_popresult( &iovec_entries, &iovector ) ) != -1 )
-      http_sendiovecdata( sock, &ws, iovec_entries, iovector );
+    while( ( sock = mutex_workqueue_popresult( &iovec_entries, &iovector, &is_partial ) ) != -1 )
+      http_sendiovecdata( sock, &ws, iovec_entries, iovector, is_partial );
 
     while( ( sock = io_canwrite( ) ) != -1 )
       handle_write( sock );
@@ -318,9 +336,6 @@ static void * server_mainloop( void * args ) {
     }
 
     livesync_ticker();
-
-    /* Enforce setting the clock */
-    signal_handler( SIGALRM );
   }
   return 0;
 }

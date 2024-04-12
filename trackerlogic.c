@@ -517,6 +517,29 @@ size_t   peer_size_from_peer6(ot_peer6 *peer) {
   return OT_PEER_SIZE4;
 }
 
+void trackerlogic_add_random_torrents(size_t amount) {
+  struct ot_workstruct ws;
+  memset( &ws, 0, sizeof(ws) );
+
+  ws.inbuf=malloc(G_INBUF_SIZE);
+  ws.outbuf=malloc(G_OUTBUF_SIZE);
+  ws.reply=ws.outbuf;
+  ws.hash=ws.inbuf;
+
+  while( amount-- ) {
+    arc4random_buf(ws.hash, sizeof(ot_hash));
+    arc4random_buf(&ws.peer, sizeof(ws.peer));
+
+    OT_PEERFLAG(ws.peer) &= PEER_FLAG_SEEDING | PEER_FLAG_COMPLETED | PEER_FLAG_STOPPED;
+
+    add_peer_to_torrent_and_return_peers( FLAG_TCP, &ws, 1 );
+  }
+
+  free(ws.inbuf);
+  free(ws.outbuf);
+}
+
+
 void exerr( char * message ) {
   fprintf( stderr, "%s\n", message );
   exit( 111 );

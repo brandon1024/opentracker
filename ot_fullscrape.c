@@ -36,9 +36,9 @@
 #define OT_SCRAPE_MAXENTRYLEN 256
 
 /* Forward declaration */
-static void fullscrape_make( int *iovec_entries, struct iovec **iovector, ot_tasktype mode );
+static void fullscrape_make( int taskid, ot_tasktype mode);
 #ifdef WANT_COMPRESSION_GZIP
-static void fullscrape_make_gzip( int *iovec_entries, struct iovec **iovector, ot_tasktype mode );
+static void fullscrape_make_gzip( int taskid, ot_tasktype mode);
 #endif
 
 /* Converter function from memory to human readable hex strings
@@ -49,9 +49,6 @@ static char*to_hex(char*d,uint8_t*s){char*m="0123456789ABCDEF";char *t=d;char*e=
    It grabs tasks from mutex_tasklist and delivers results back
 */
 static void * fullscrape_worker( void * args ) {
-  int iovec_entries;
-  struct iovec *iovector;
-
   (void) args;
 
   while( g_opentracker_running ) {
@@ -59,12 +56,11 @@ static void * fullscrape_worker( void * args ) {
     ot_taskid   taskid   = mutex_workqueue_poptask( &tasktype );
 #ifdef WANT_COMPRESSION_GZIP
     if (tasktype & TASK_FLAG_GZIP)
-        fullscrape_make_gzip( &iovec_entries, &iovector, tasktype );
+      fullscrape_make_gzip( taskid, tasktype );
     else
 #endif
-        fullscrape_make( &iovec_entries, &iovector, tasktype );
-    if( mutex_workqueue_pushresult( taskid, iovec_entries, iovector ) )
-      iovec_free( &iovec_entries, &iovector );
+      fullscrape_make( taskid, tasktype );
+    mutex_workqueue_pushchunked( taskid, NULL );
   }
   return NULL;
 }
@@ -123,14 +119,13 @@ static char * fullscrape_write_one( ot_tasktype mode, char *r, ot_torrent *torre
     return r;
 }
 
-static void fullscrape_make( int *iovec_entries, struct iovec **iovector, ot_tasktype mode ) {
+static void fullscrape_make( int taskid, ot_tasktype mode ) {
   int      bucket;
   char    *r, *re;
+  struct iovec iovector = { NULL, 0 };
 
   /* Setup return vector... */
-  *iovec_entries = 0;
-  *iovector = NULL;
-  r = iovec_increase( iovec_entries, iovector, OT_SCRAPE_CHUNK_SIZE );
+  r = iovector.iov_base = malloc( OT_SCRAPE_CHUNK_SIZE );
   if( !r )
     return;
 
@@ -152,8 +147,14 @@ static void fullscrape_make( int *iovec_entries, struct iovec **iovector, ot_tas
       r = fullscrape_write_one( mode, r, torrents+i, &torrents[i].hash );
 
       if( r > re) {
+        iovector.iov_len = r - (char *)iovector.iov_base;
+
+        if (mutex_workqueue_pushchunked(taskid, &iovector) ) {
+          free(iovector.iov_base);
+          return mutex_bucket_unlock( bucket, 0 );
+        }
         /* Allocate a fresh output buffer at the end of our buffers list */
-        r = iovec_fix_increase_or_free( iovec_entries, iovector, r, OT_SCRAPE_CHUNK_SIZE );
+        r = iovector.iov_base = malloc( OT_SCRAPE_CHUNK_SIZE );
         if( !r )
           return mutex_bucket_unlock( bucket, 0 );
 
@@ -174,7 +175,9 @@ static void fullscrape_make( int *iovec_entries, struct iovec **iovector, ot_tas
     r += sprintf( r, "ee" );
 
   /* Release unused memory in current output buffer */
-  iovec_fixlast( iovec_entries, iovector, r );
+  iovector.iov_len = r - (char *)iovector.iov_base;
+  if( mutex_workqueue_pushchunked(taskid, &iovector) )
+    free(iovector.iov_base);
 }
 
 #ifdef WANT_COMPRESSION_GZIP

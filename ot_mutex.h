@@ -54,9 +54,11 @@ typedef enum {
   TASK_DMEM                        = 0x0300,
 
   TASK_DONE                        = 0x0f00,
+  TASK_DONE_PARTIAL                = 0x0f01,
 
   TASK_FLAG_GZIP                   = 0x1000,
   TASK_FLAG_BZIP2                  = 0x2000,
+  TASK_FLAG_CHUNKED                = 0x4000,
 
   TASK_TASK_MASK                   = 0x0fff,
   TASK_CLASS_MASK                  = 0x0f00,
@@ -70,6 +72,7 @@ void      mutex_workqueue_canceltask( int64 sock );
 void      mutex_workqueue_pushsuccess( ot_taskid taskid );
 ot_taskid mutex_workqueue_poptask( ot_tasktype *tasktype );
 int       mutex_workqueue_pushresult( ot_taskid taskid, int iovec_entries, struct iovec *iovector );
-int64     mutex_workqueue_popresult( int *iovec_entries, struct iovec ** iovector );
+int       mutex_workqueue_pushchunked(ot_taskid taskid, struct iovec *iovec);
+int64     mutex_workqueue_popresult( int *iovec_entries, struct iovec ** iovector, int *is_partial );
 
 #endif

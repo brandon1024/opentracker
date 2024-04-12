@@ -121,9 +121,10 @@ ssize_t http_issue_error( const int64 sock, struct ot_workstruct *ws, int code )
   return ws->reply_size = -2;
 }
 
-ssize_t http_sendiovecdata( const int64 sock, struct ot_workstruct *ws, int iovec_entries, struct iovec *iovector ) {
+ssize_t http_sendiovecdata( const int64 sock, struct ot_workstruct *ws, int iovec_entries, struct iovec *iovector, int is_partial ) {
   struct http_data *cookie = io_getcookie( sock );
   char *header;
+  const char *encoding = "";
   int i;
   size_t header_size, size = iovec_length( &iovec_entries, (const struct iovec **)&iovector );
   tai6464 t;
@@ -140,54 +141,72 @@ ssize_t http_sendiovecdata( const int64 sock, struct ot_workstruct *ws, int iove
   /* If we came here, wait for the answer is over */
   cookie->flag &= ~STRUCT_HTTP_FLAG_WAITINGFORTASK;
 
-  /* Our answers never are 0 vectors. Return an error. */
-  if( !iovec_entries ) {
-    HTTPERROR_500;
-  }
+fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch == %p\n", iovec_entries, cookie->batch);
 
-  /* Prepare space for http header */
-  header = malloc( SUCCESS_HTTP_HEADER_LENGTH + SUCCESS_HTTP_HEADER_LENGTH_CONTENT_ENCODING );
-  if( !header ) {
-    iovec_free( &iovec_entries, &iovector );
-    HTTPERROR_500;
-  }
+  if( iovec_entries ) {
 
-  if( cookie->flag & STRUCT_HTTP_FLAG_GZIP )
-    header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: %zd\r\n\r\n", size );
-  else if( cookie->flag & STRUCT_HTTP_FLAG_BZIP2 )
-    header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: bzip2\r\nContent-Length: %zd\r\n\r\n", size );
-  else
-    header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %zd\r\n\r\n", size );
-
-  if (!cookie->batch ) {
-    cookie->batch = malloc( sizeof(io_batch) );
-    memset( cookie->batch, 0, sizeof(io_batch) );
-    cookie->batches = 1;
-  }
-  iob_addbuf_free( cookie->batch, header, header_size );
-
-  /* Split huge iovectors into separate io_batches */
-  for( i=0; i<iovec_entries; ++i ) {
-    io_batch *current = cookie->batch + cookie->batches - 1;
-
-    /* If the current batch's limit is reached, try to reallocate a new batch to work on */
-    if( current->bytesleft > OT_BATCH_LIMIT ) {
-        io_batch * new_batch = realloc( current, (cookie->batches + 1) * sizeof(io_batch) );
-        if( new_batch ) {
-            cookie->batches++;
-            current = cookie->batch = new_batch;
-            memset( current, 0, sizeof(io_batch) );
-        }
+    /* Prepare space for http header */
+    header = malloc( SUCCESS_HTTP_HEADER_LENGTH + SUCCESS_HTTP_HEADER_LENGTH_CONTENT_ENCODING );
+    if( !header ) {
+      iovec_free( &iovec_entries, &iovector );
+      HTTPERROR_500;
     }
 
-    iob_addbuf_free( current, iovector[i].iov_base, iovector[i].iov_len );
+    if( cookie->flag & STRUCT_HTTP_FLAG_GZIP )
+      encoding = "Content-Encoding: gzip\r\n";
+    else if( cookie->flag & STRUCT_HTTP_FLAG_BZIP2 )
+      encoding = "Content-Encoding: bzip2\r\n";
+
+    if( !(cookie->flag & STRUCT_HTTP_FLAG_CHUNKED) )
+      header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n%sContent-Length: %zd\r\n\r\n", encoding, size );
+    else {
+      if ( !(cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER )) {
+        header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n%sTransfer-Encoding: chunked\r\n\r\n%zx\r\n", encoding, size );
+        cookie->flag |= STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER;
+      } else
+        header_size = sprintf( header, "%zx\r\n", size );
+    }
+
+    if (!cookie->batch ) {
+      cookie->batch = malloc( sizeof(io_batch) );
+      memset( cookie->batch, 0, sizeof(io_batch) );
+      cookie->batches = 1;
+    }
+    iob_addbuf_free( cookie->batch, header, header_size );
+
+    /* Split huge iovectors into separate io_batches */
+    for( i=0; i<iovec_entries; ++i ) {
+      io_batch *current = cookie->batch + cookie->batches - 1;
+
+      /* If the current batch's limit is reached, try to reallocate a new batch to work on */
+      if( current->bytesleft > OT_BATCH_LIMIT ) {
+fprintf(stderr, "http_sendiovecdata found batch above limit: %zd\n", current->bytesleft);
+        io_batch * new_batch = realloc( cookie->batch, (cookie->batches + 1) * sizeof(io_batch) );
+        if( new_batch ) {
+          cookie->batch = new_batch;
+          current = cookie->batch + cookie->batches++;
+          memset( current, 0, sizeof(io_batch) );
+        }
+      }
+fprintf(stderr, "http_sendiovecdata calling iob_addbuf_free with %zd\n", iovector[i].iov_len);
+      iob_addbuf_free( current, iovector[i].iov_base, iovector[i].iov_len );
+    }
+    free( iovector );
+    if ( cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER )
+      iob_addbuf(cookie->batch + cookie->batches - 1, "\r\n", 2);
   }
-  free( iovector );
+
+  if ((cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER) && cookie->batch && !is_partial) {
+fprintf(stderr, "http_sendiovecdata adds a terminating 0 size buffer to batch\n");
+    iob_addbuf(cookie->batch + cookie->batches - 1, "0\r\n\r\n", 5);
+    cookie->flag &= ~STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER;
+  }
 
   /* writeable sockets timeout after 10 minutes */
   taia_now( &t ); taia_addsec( &t, &t, OT_CLIENT_TIMEOUT_SEND );
   io_timeout( sock, t );
   io_dontwantread( sock );
+fprintf (stderr, "http_sendiovecdata marks socket %lld as wantwrite\n", sock);
   io_wantwrite( sock );
   return 0;
 }
@@ -254,7 +273,7 @@ static const ot_keywords keywords_format[] =
 #endif
 #endif
     /* Pass this task to the worker thread */
-    cookie->flag |= STRUCT_HTTP_FLAG_WAITINGFORTASK;
+    cookie->flag |= STRUCT_HTTP_FLAG_WAITINGFORTASK | STRUCT_HTTP_FLAG_CHUNKED;
 
     /* Clients waiting for us should not easily timeout */
     taia_uint( &t, 0 ); io_timeout( sock, t );
@@ -278,7 +297,7 @@ static const ot_keywords keywords_format[] =
 }
 
 #ifdef WANT_MODEST_FULLSCRAPES
-static pthread_mutex_t g_modest_fullscrape_mutex = PTHREAD_MUTEX_INITIALIZER; 
+static pthread_mutex_t g_modest_fullscrape_mutex = PTHREAD_MUTEX_INITIALIZER;
 static ot_vector g_modest_fullscrape_timeouts;
 typedef struct { ot_ip6 ip; ot_time last_fullscrape; } ot_scrape_log;
 #endif
@@ -325,7 +344,7 @@ static ssize_t http_handle_fullscrape( const int64 sock, struct ot_workstruct *w
 #endif
 
   /* Pass this task to the worker thread */
-  cookie->flag |= STRUCT_HTTP_FLAG_WAITINGFORTASK;
+  cookie->flag |= STRUCT_HTTP_FLAG_WAITINGFORTASK | STRUCT_HTTP_FLAG_CHUNKED;
   /* Clients waiting for us should not easily timeout */
   taia_uint( &t, 0 ); io_timeout( sock, t );
   fullscrape_deliver( sock, TASK_FULLSCRAPE | format );

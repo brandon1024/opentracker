@@ -35,6 +35,26 @@ void *iovec_increase( int *iovec_entries, struct iovec **iovector, size_t new_al
   return new_data;
 }
 
+void *iovec_append( int *iovec_entries, struct iovec **iovector, struct iovec *append_iovector) {
+  int new_entries = *iovec_entries + 1;
+  struct iovec *new_vec = realloc( *iovector, new_entries * sizeof( struct iovec ) );
+  if( !new_vec )
+    return NULL;
+
+  /* Take over data from appended iovec */
+  new_vec[*iovec_entries].iov_base = append_iovector->iov_base;
+  new_vec[*iovec_entries].iov_len  = append_iovector->iov_len;
+
+  append_iovector->iov_base = NULL;
+  append_iovector->iov_len = 0;
+
+  *iovector = new_vec;
+  *iovec_entries = new_entries;
+
+  return new_vec;
+}
+
+
 void iovec_free( int *iovec_entries, struct iovec **iovector ) {
   int i;
   for( i=0; i<*iovec_entries; ++i )
@@ -63,7 +83,6 @@ void *iovec_fix_increase_or_free( int *iovec_entries, struct iovec **iovector, v
 
   return new_data;
 }
-
 
 size_t iovec_length( const int *iovec_entries, const struct iovec **iovector ) {
   size_t length = 0;
