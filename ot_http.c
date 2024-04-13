@@ -123,6 +123,7 @@ ssize_t http_issue_error( const int64 sock, struct ot_workstruct *ws, int code )
 
 ssize_t http_sendiovecdata( const int64 sock, struct ot_workstruct *ws, int iovec_entries, struct iovec *iovector, int is_partial ) {
   struct http_data *cookie = io_getcookie( sock );
+  io_batch *current;
   char *header;
   const char *encoding = "";
   int i;
@@ -169,15 +170,19 @@ fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch
 
     if (!cookie->batch ) {
       cookie->batch = malloc( sizeof(io_batch) );
+      if (!cookie->batch) {
+        free(header);
+        iovec_free( &iovec_entries, &iovector );
+        HTTPERROR_500;
+      }
       memset( cookie->batch, 0, sizeof(io_batch) );
       cookie->batches = 1;
     }
-    iob_addbuf_free( cookie->batch, header, header_size );
+    current = cookie->batch + cookie->batches - 1;
+    iob_addbuf_free( current, header, header_size );
 
     /* Split huge iovectors into separate io_batches */
     for( i=0; i<iovec_entries; ++i ) {
-      io_batch *current = cookie->batch + cookie->batches - 1;
-
       /* If the current batch's limit is reached, try to reallocate a new batch to work on */
       if( current->bytesleft > OT_BATCH_LIMIT ) {
 fprintf(stderr, "http_sendiovecdata found batch above limit: %zd\n", current->bytesleft);
@@ -193,12 +198,13 @@ fprintf(stderr, "http_sendiovecdata calling iob_addbuf_free with %zd\n", iovecto
     }
     free( iovector );
     if ( cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER )
-      iob_addbuf(cookie->batch + cookie->batches - 1, "\r\n", 2);
+      iob_addbuf(current, "\r\n", 2);
   }
 
   if ((cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER) && cookie->batch && !is_partial) {
 fprintf(stderr, "http_sendiovecdata adds a terminating 0 size buffer to batch\n");
-    iob_addbuf(cookie->batch + cookie->batches - 1, "0\r\n\r\n", 5);
+    current = cookie->batch + cookie->batches - 1;
+    iob_addbuf(current, "0\r\n\r\n", 5);
     cookie->flag &= ~STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER;
   }
 

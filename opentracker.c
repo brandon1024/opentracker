@@ -238,8 +238,8 @@ static void handle_write( const int64 sock ) {
 
   /* In a chunked transfer after all batches accumulated have been sent, wait for the next one */
   if( chunked ) {
-//fprintf( stderr, "handle_write is STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER => dont want write on sock %lld\n", sock);
-    //io_dontwantwrite( sock );
+fprintf( stderr, "handle_write is STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER => dont want write on sock %lld\n", sock);
+    io_dontwantwrite( sock );
   } else {
 fprintf( stderr, "handle_write is STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER => handle dead on sock %lld\n", sock);
     handle_dead( sock );
