@@ -162,7 +162,7 @@ fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch
       header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n%sContent-Length: %zd\r\n\r\n", encoding, size );
     else {
       if ( !(cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER )) {
-        header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n%sTransfer-Encoding: chunked\r\n\r\n%zx\r\n", encoding, size );
+        header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: application/octet-stream\r\n%sTransfer-Encoding: chunked\r\n\r\n%zx\r\n", encoding, size );
         cookie->flag |= STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER;
       } else
         header_size = sprintf( header, "%zx\r\n", size );
@@ -269,12 +269,12 @@ static const ot_keywords keywords_format[] =
     tai6464 t;
 #ifdef WANT_COMPRESSION_GZIP
     ws->request[ws->request_size] = 0;
-#ifdef WANT_COMPRESSION_GZIP_ALWAYS
+#ifndef WANT_COMPRESSION_GZIP_ALWAYS
     if( strstr( read_ptr - 1, "gzip" ) ) {
 #endif
       cookie->flag |= STRUCT_HTTP_FLAG_GZIP;
       format |= TASK_FLAG_GZIP;
-#ifdef WANT_COMPRESSION_GZIP_ALWAYS
+#ifndef WANT_COMPRESSION_GZIP_ALWAYS
     }
 #endif
 #endif
@@ -337,11 +337,15 @@ static ssize_t http_handle_fullscrape( const int64 sock, struct ot_workstruct *w
 
 #ifdef WANT_COMPRESSION_GZIP
   ws->request[ws->request_size-1] = 0;
+#ifndef WANT_COMPRESSION_GZIP_ALWAYS
   if( strstr( ws->request, "gzip" ) ) {
+#endif
     cookie->flag |= STRUCT_HTTP_FLAG_GZIP;
     format = TASK_FLAG_GZIP;
     stats_issue_event( EVENT_FULLSCRAPE_REQUEST_GZIP, 0, (uintptr_t)cookie->ip );
+#ifndef WANT_COMPRESSION_GZIP_ALWAYS
   } else
+#endif
 #endif
     stats_issue_event( EVENT_FULLSCRAPE_REQUEST, 0, (uintptr_t)cookie->ip );
 

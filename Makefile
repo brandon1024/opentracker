@@ -24,7 +24,7 @@ STRIP?=strip
 #FEATURES+=-DWANT_DYNAMIC_ACCESSLIST
 
 #FEATURES+=-DWANT_SYNC_LIVE
-#FEATURES+=-DWANT_IP_FROM_QUERY_STRING
+FEATURES+=-DWANT_IP_FROM_QUERY_STRING
 #FEATURES+=-DWANT_COMPRESSION_GZIP
 #FEATURES+=-DWANT_COMPRESSION_GZIP_ALWAYS
 #FEATURES+=-DWANT_LOG_NETWORKS
@@ -48,7 +48,7 @@ FEATURES+=-DWANT_FULLSCRAPE
 OPTS_debug=-D_DEBUG -g -ggdb # -pg -fprofile-arcs -ftest-coverage
 OPTS_production=-O3
 
-CFLAGS+=-I$(LIBOWFAT_HEADERS) -Wall -pipe -pthread -Wextra #-ansi -pedantic
+CFLAGS+=-I$(LIBOWFAT_HEADERS) -Wall -pipe -pthread -Wextra -Wincompatible-pointer-types #-ansi -pedantic
 LDFLAGS+=-L$(LIBOWFAT_LIBRARY) -lowfat -pthread -lz
 #LDFLAGS+=-lbsd
 

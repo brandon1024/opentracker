@@ -262,33 +262,36 @@ fprintf(stderr, "GZIP path\n");
   if( deflate( &strm, Z_FINISH ) < Z_OK )
     fprintf( stderr, "deflate() failed while in fullscrape_make()'s endgame.\n" );
 
-  if( !strm.avail_out ) {
+  iovector.iov_len = (char *)strm.next_out - (char *)iovector.iov_base;
+  if (mutex_workqueue_pushchunked(taskid, &iovector) ) {
+      free(iovector.iov_base);
+      return mutex_bucket_unlock( bucket, 0 );
+  }
+
+  {
     unsigned int pending;
     int bits;
     deflatePending( &strm, &pending, &bits);
     pending += ( bits ? 1 : 0 );
 
-    iovector.iov_len = (char *)strm.next_out - (char *)iovector.iov_base;
-    if (mutex_workqueue_pushchunked(taskid, &iovector) ) {
-        free(iovector.iov_base);
+    if (pending) {
+      /* Allocate a fresh output buffer */
+      iovector.iov_base = malloc( pending );
+      iovector.iov_len = pending;
+
+      if( !iovector.iov_base ) {
+        fprintf( stderr, "Problem with iovec_fix_increase_or_free\n" );
+        deflateEnd(&strm);
         return mutex_bucket_unlock( bucket, 0 );
-    }
-    /* Allocate a fresh output buffer */
-    iovector.iov_base = malloc( pending );
-    iovector.iov_len = pending;
+      }
+      strm.next_out  = iovector.iov_base;
+      strm.avail_out = pending;
+      if( deflate( &strm, Z_FINISH ) < Z_OK )
+        fprintf( stderr, "deflate() failed while in fullscrape_make()'s endgame.\n" );
 
-    if( !iovector.iov_base ) {
-      fprintf( stderr, "Problem with iovec_fix_increase_or_free\n" );
-      deflateEnd(&strm);
-      return mutex_bucket_unlock( bucket, 0 );
+      if( mutex_workqueue_pushchunked(taskid, &iovector) )
+        free(iovector.iov_base);
     }
-    strm.next_out  = iovector.iov_base;
-    strm.avail_out = pending;
-    if( deflate( &strm, Z_FINISH ) < Z_OK )
-      fprintf( stderr, "deflate() failed while in fullscrape_make()'s endgame.\n" );
-
-    if( mutex_workqueue_pushchunked(taskid, &iovector) )
-      free(iovector.iov_base);
   }
 
   deflateEnd(&strm);
