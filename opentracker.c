@@ -726,6 +726,10 @@ int main( int argc, char **argv ) {
   /* Init all sub systems. This call may fail with an exit() */
   trackerlogic_init( );
 
+#ifdef _DEBUG_RANDOMTORRENTS
+  trackerlogic_add_random_torrents(1024*1024*1);
+#endif
+
   if( statefile )
     load_state( statefile );
 

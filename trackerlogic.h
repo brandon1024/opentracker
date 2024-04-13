@@ -190,7 +190,9 @@ size_t  remove_peer_from_torrent( PROTO_FLAG proto, struct ot_workstruct *ws );
 size_t  return_tcp_scrape_for_torrent( ot_hash const *hash_list, int amount, char *reply );
 size_t  return_udp_scrape_for_torrent( ot_hash const hash, char *reply );
 void    add_torrent_from_saved_state( ot_hash const hash, ot_time base, size_t down_count );
+#ifdef _DEBUG_RANDOMTORRENTS
 void    trackerlogic_add_random_torrents(size_t amount);
+#endif
 
 /* torrent iterator */
 void iterate_all_torrents( int (*for_each)( ot_torrent* torrent, uintptr_t data ), uintptr_t data );

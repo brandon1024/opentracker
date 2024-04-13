@@ -517,6 +517,7 @@ size_t   peer_size_from_peer6(ot_peer6 *peer) {
   return OT_PEER_SIZE4;
 }
 
+#ifdef _DEBUG_RANDOMTORRENTS
 void trackerlogic_add_random_torrents(size_t amount) {
   struct ot_workstruct ws;
   memset( &ws, 0, sizeof(ws) );
@@ -538,7 +539,7 @@ void trackerlogic_add_random_torrents(size_t amount) {
   free(ws.inbuf);
   free(ws.outbuf);
 }
-
+#endif
 
 void exerr( char * message ) {
   fprintf( stderr, "%s\n", message );
