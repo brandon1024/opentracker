@@ -153,7 +153,7 @@ static void fullscrape_make( int taskid, ot_tasktype mode ) {
           free(iovector.iov_base);
           return mutex_bucket_unlock( bucket, 0 );
         }
-        /* Allocate a fresh output buffer at the end of our buffers list */
+        /* Allocate a fresh output buffer */
         r = iovector.iov_base = malloc( OT_SCRAPE_CHUNK_SIZE );
         if( !r )
           return mutex_bucket_unlock( bucket, 0 );
@@ -174,7 +174,7 @@ static void fullscrape_make( int taskid, ot_tasktype mode ) {
   if( ( mode & TASK_TASK_MASK ) == TASK_FULLSCRAPE )
     r += sprintf( r, "ee" );
 
-  /* Release unused memory in current output buffer */
+  /* Send rest of data */
   iovector.iov_len = r - (char *)iovector.iov_base;
   if( mutex_workqueue_pushchunked(taskid, &iovector) )
     free(iovector.iov_base);
@@ -182,21 +182,20 @@ static void fullscrape_make( int taskid, ot_tasktype mode ) {
 
 #ifdef WANT_COMPRESSION_GZIP
 
-static void fullscrape_make_gzip( int *iovec_entries, struct iovec **iovector, ot_tasktype mode ) {
+static void fullscrape_make_gzip( int taskid, ot_tasktype mode) {
   int      bucket;
   char    *r;
+  struct iovec iovector = { NULL, 0 };
   int      zres;
   z_stream strm;
-
+fprintf(stderr, "GZIP path\n");
   /* Setup return vector... */
-  *iovec_entries = 0;
-  *iovector = NULL;
-  r = iovec_increase( iovec_entries, iovector, OT_SCRAPE_CHUNK_SIZE );
-  if( !r )
+  iovector.iov_base = malloc( OT_SCRAPE_CHUNK_SIZE );
+  if( !iovector.iov_base )
     return;
 
   byte_zero( &strm, sizeof(strm) );
-  strm.next_out  = (uint8_t*)r;
+  strm.next_out  = (uint8_t*)iovector.iov_base;
   strm.avail_out = OT_SCRAPE_CHUNK_SIZE;
   if( deflateInit2(&strm,7,Z_DEFLATED,31,9,Z_DEFAULT_STRATEGY) != Z_OK )
     fprintf( stderr, "not ok.\n" );
@@ -226,15 +225,20 @@ static void fullscrape_make_gzip( int *iovec_entries, struct iovec **iovector, o
 
       /* Check if there still is enough buffer left */
       while( !strm.avail_out ) {
-        /* Allocate a fresh output buffer at the end of our buffers list */
-        r = iovec_increase( iovec_entries, iovector, OT_SCRAPE_CHUNK_SIZE );
-        if( !r ) {
-          fprintf( stderr, "Problem with iovec_fix_increase_or_free\n" );
-          iovec_free( iovec_entries, iovector );
+        iovector.iov_len = (char *)strm.next_out - (char *)iovector.iov_base;
+
+        if (mutex_workqueue_pushchunked(taskid, &iovector) ) {
+          free(iovector.iov_base);
+          return mutex_bucket_unlock( bucket, 0 );
+        }
+        /* Allocate a fresh output buffer */
+        iovector.iov_base = malloc( OT_SCRAPE_CHUNK_SIZE );
+        if( !iovector.iov_base ) {
+          fprintf( stderr, "Out of memory trying to claim ouput buffer\n" );
           deflateEnd(&strm);
           return mutex_bucket_unlock( bucket, 0 );
         }
-        strm.next_out  = (uint8_t*)r;
+        strm.next_out  = (uint8_t*)iovector.iov_base;
         strm.avail_out = OT_SCRAPE_CHUNK_SIZE;
         zres = deflate( &strm, Z_NO_FLUSH );
         if( ( zres < Z_OK ) && ( zres != Z_BUF_ERROR ) )
@@ -264,21 +268,28 @@ static void fullscrape_make_gzip( int *iovec_entries, struct iovec **iovector, o
     deflatePending( &strm, &pending, &bits);
     pending += ( bits ? 1 : 0 );
 
-    /* Allocate a fresh output buffer at the end of our buffers list */
-    r = iovec_fix_increase_or_free( iovec_entries, iovector, strm.next_out, pending );
-    if( !r ) {
+    iovector.iov_len = (char *)strm.next_out - (char *)iovector.iov_base;
+    if (mutex_workqueue_pushchunked(taskid, &iovector) ) {
+        free(iovector.iov_base);
+        return mutex_bucket_unlock( bucket, 0 );
+    }
+    /* Allocate a fresh output buffer */
+    iovector.iov_base = malloc( pending );
+    iovector.iov_len = pending;
+
+    if( !iovector.iov_base ) {
       fprintf( stderr, "Problem with iovec_fix_increase_or_free\n" );
       deflateEnd(&strm);
       return mutex_bucket_unlock( bucket, 0 );
     }
-    strm.next_out  = (uint8_t*)r;
+    strm.next_out  = iovector.iov_base;
     strm.avail_out = pending;
     if( deflate( &strm, Z_FINISH ) < Z_OK )
       fprintf( stderr, "deflate() failed while in fullscrape_make()'s endgame.\n" );
-  }
 
-  /* Release unused memory in current output buffer */
-  iovec_fixlast( iovec_entries, iovector, strm.next_out );
+    if( mutex_workqueue_pushchunked(taskid, &iovector) )
+      free(iovector.iov_base);
+  }
 
   deflateEnd(&strm);
 }
