@@ -39,7 +39,6 @@ ssize_t g_stats_path_len;
 
 enum {
   SUCCESS_HTTP_HEADER_LENGTH = 80,
-  SUCCESS_HTTP_HEADER_LENGTH_CONTENT_ENCODING = 32,
   SUCCESS_HTTP_SIZE_OFF = 17 };
 
 static void http_senddata( const int64 sock, struct ot_workstruct *ws ) {
