@@ -77,7 +77,7 @@ static void http_senddata( const int64 sock, struct ot_workstruct *ws ) {
     memcpy( outbuf, ws->reply + written_size, ws->reply_size - written_size );
     if ( !cookie->batch ) {
         cookie->batch = malloc( sizeof(io_batch) );
-        memset( cookie->batch, 0, sizeof(io_batch) );
+        iob_init_autofree(cookie->batch, 0);
         cookie->batches = 1;
     }
 
@@ -171,7 +171,7 @@ fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch
         iovec_free( &iovec_entries, &iovector );
         HTTPERROR_500;
       }
-      memset( cookie->batch, 0, sizeof(io_batch) );
+      iob_init_autofree(cookie->batch, 0);
       cookie->batches = 1;
     }
     current = cookie->batch + cookie->batches - 1;
@@ -186,7 +186,7 @@ fprintf(stderr, "http_sendiovecdata found batch above limit: %llu\n", current->b
         if( new_batch ) {
           cookie->batch = new_batch;
           current = cookie->batch + cookie->batches++;
-          memset( current, 0, sizeof(io_batch) );
+          iob_init_autofree(current ,0);
         }
       }
 fprintf(stderr, "http_sendiovecdata calling iob_addbuf_free with %zd\n", iovector[i].iov_len);
