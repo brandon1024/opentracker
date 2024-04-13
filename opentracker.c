@@ -159,7 +159,7 @@ static void handle_dead( const int64 sock ) {
         iob_reset( cookie->batch + i );
     free( cookie->batch );
     array_reset( &cookie->request );
-    if( cookie->flag & STRUCT_HTTP_FLAG_WAITINGFORTASK )
+    if( cookie->flag & (STRUCT_HTTP_FLAG_WAITINGFORTASK | STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER) )
       mutex_workqueue_canceltask( sock );
     free( cookie );
   }
