@@ -146,26 +146,23 @@ fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch
 
   if( iovec_entries ) {
 
-    /* Prepare space for http header */
-    header = malloc( SUCCESS_HTTP_HEADER_LENGTH + SUCCESS_HTTP_HEADER_LENGTH_CONTENT_ENCODING );
-    if( !header ) {
-      iovec_free( &iovec_entries, &iovector );
-      HTTPERROR_500;
-    }
-
     if( cookie->flag & STRUCT_HTTP_FLAG_GZIP )
       encoding = "Content-Encoding: gzip\r\n";
     else if( cookie->flag & STRUCT_HTTP_FLAG_BZIP2 )
       encoding = "Content-Encoding: bzip2\r\n";
 
     if( !(cookie->flag & STRUCT_HTTP_FLAG_CHUNKED) )
-      header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n%sContent-Length: %zd\r\n\r\n", encoding, size );
+      header_size = asprintf( &header, "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n%sContent-Length: %zd\r\n\r\n", encoding, size );
     else {
       if ( !(cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER )) {
-        header_size = sprintf( header, "HTTP/1.0 200 OK\r\nContent-Type: application/octet-stream\r\n%sTransfer-Encoding: chunked\r\n\r\n%zx\r\n", encoding, size );
+        header_size = asprintf( &header, "HTTP/1.0 200 OK\r\nContent-Type: application/octet-stream\r\n%sTransfer-Encoding: chunked\r\n\r\n%zx\r\n", encoding, size );
         cookie->flag |= STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER;
       } else
-        header_size = sprintf( header, "%zx\r\n", size );
+        header_size = asprintf( &header, "%zx\r\n", size );
+    }
+    if( !header ) {
+      iovec_free( &iovec_entries, &iovector );
+      HTTPERROR_500;
     }
 
     if (!cookie->batch ) {
