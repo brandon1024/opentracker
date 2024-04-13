@@ -217,7 +217,7 @@ static void handle_write( const int64 sock ) {
       chunked = 1;
 
     for( i = 0; i < cookie->batches; ++i ) {
-      fprintf(stderr, "handle_write inspects batch %d of %d (bytes left: %d)\n", i, cookie->batches, cookie->batch[i].bytesleft);
+      fprintf(stderr, "handle_write inspects batch %zu of %zu (bytes left: %llu)\n", i, cookie->batches, cookie->batch[i].bytesleft);
       if( cookie->batch[i].bytesleft ) {
         int64 res = iob_send( sock, cookie->batch + i );
 

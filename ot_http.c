@@ -185,7 +185,7 @@ fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch
     for( i=0; i<iovec_entries; ++i ) {
       /* If the current batch's limit is reached, try to reallocate a new batch to work on */
       if( current->bytesleft > OT_BATCH_LIMIT ) {
-fprintf(stderr, "http_sendiovecdata found batch above limit: %zd\n", current->bytesleft);
+fprintf(stderr, "http_sendiovecdata found batch above limit: %llu\n", current->bytesleft);
         io_batch * new_batch = realloc( cookie->batch, (cookie->batches + 1) * sizeof(io_batch) );
         if( new_batch ) {
           cookie->batch = new_batch;
