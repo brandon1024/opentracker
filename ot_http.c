@@ -144,8 +144,6 @@ ssize_t http_sendiovecdata( const int64 sock, struct ot_workstruct *ws, int iove
     cookie->flag &= ~STRUCT_HTTP_FLAG_WAITINGFORTASK;
   }
 
-fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch == %p\n", iovec_entries, cookie->batch);
-
   if( iovec_entries ) {
 
     if( cookie->flag & STRUCT_HTTP_FLAG_GZIP )
@@ -184,7 +182,6 @@ fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch
     for( i=0; i<iovec_entries; ++i ) {
       /* If the current batch's limit is reached, try to reallocate a new batch to work on */
       if( current->bytesleft > OT_BATCH_LIMIT ) {
-fprintf(stderr, "http_sendiovecdata found batch above limit: %llu\n", current->bytesleft);
         io_batch * new_batch = realloc( cookie->batch, (cookie->batches + 1) * sizeof(io_batch) );
         if( new_batch ) {
           cookie->batch = new_batch;
@@ -192,7 +189,6 @@ fprintf(stderr, "http_sendiovecdata found batch above limit: %llu\n", current->b
           iob_init_autofree(current ,0);
         }
       }
-fprintf(stderr, "http_sendiovecdata calling iob_addbuf_free with %zd\n", iovector[i].iov_len);
       iob_addbuf_free( current, iovector[i].iov_base, iovector[i].iov_len );
     }
     free( iovector );
@@ -201,7 +197,6 @@ fprintf(stderr, "http_sendiovecdata calling iob_addbuf_free with %zd\n", iovecto
   }
 
   if ((cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER) && cookie->batch && !is_partial) {
-fprintf(stderr, "http_sendiovecdata adds a terminating 0 size buffer to batch\n");
     current = cookie->batch + cookie->batches - 1;
     iob_addbuf(current, "0\r\n\r\n", 5);
     cookie->flag &= ~STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER;
@@ -210,7 +205,6 @@ fprintf(stderr, "http_sendiovecdata adds a terminating 0 size buffer to batch\n"
   /* writeable sockets timeout after 10 minutes */
   taia_now( &t ); taia_addsec( &t, &t, OT_CLIENT_TIMEOUT_SEND );
   io_timeout( sock, t );
-fprintf (stderr, "http_sendiovecdata marks socket %lld as wantwrite\n", sock);
   io_wantwrite( sock );
   return 0;
 }

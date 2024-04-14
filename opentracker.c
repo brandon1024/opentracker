@@ -217,11 +217,9 @@ static void handle_write( const int64 sock ) {
       chunked = 1;
 
     for( i = 0; i < cookie->batches; ++i ) {
-      fprintf(stderr, "handle_write inspects batch %zu of %zu (bytes left: %llu)\n", i, cookie->batches, cookie->batch[i].bytesleft);
       if( cookie->batch[i].bytesleft ) {
         int64 res = iob_send( sock, cookie->batch + i );
 
-        fprintf(stderr, "handle_write yields res %lld when trying to iob_send\n", res);
         if( res == -3 ) {
           handle_dead( sock );
           return;
@@ -237,13 +235,10 @@ static void handle_write( const int64 sock ) {
   }
 
   /* In a chunked transfer after all batches accumulated have been sent, wait for the next one */
-  if( chunked ) {
-fprintf( stderr, "handle_write is STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER => dont want write on sock %lld\n", sock);
+  if( chunked )
     io_dontwantwrite( sock );
-  } else {
-fprintf( stderr, "handle_write is STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER => handle dead on sock %lld\n", sock);
+  else
     handle_dead( sock );
-  }
 }
 
 static void handle_accept( const int64 serversocket ) {

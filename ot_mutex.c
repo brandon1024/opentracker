@@ -205,14 +205,12 @@ int mutex_workqueue_pushchunked(ot_taskid taskid, struct iovec *iovec) {
   for (task = tasklist; task; task = task->next)
     if (task->taskid == taskid) {
       if( iovec ) {
-fprintf(stderr, "mutex_workqueue_pushchunked pushing on taskid %lu\n", taskid);
-        if (!iovec_append(&task->iovec_entries, &task->iovec, iovec) )
-          return -1;
-        task->tasktype = TASK_DONE_PARTIAL;
-      } else {
-fprintf(stderr, "mutex_workqueue_pushchunked finished taskid %lu\n", taskid);
+        if (iovec_append(&task->iovec_entries, &task->iovec, iovec) )
+          task->tasktype = TASK_DONE_PARTIAL;
+        else
+          task = NULL;
+      } else
         task->tasktype = TASK_DONE;
-      }
       break;
     }
 
@@ -220,8 +218,6 @@ fprintf(stderr, "mutex_workqueue_pushchunked finished taskid %lu\n", taskid);
   pthread_mutex_unlock( &tasklist_mutex );
 
   io_trywrite( g_self_pipe[1], &byte, 1 );
-if(!task)
-fprintf(stderr, "mutex_workqueue_pushchunked taskid %lu not found\n", taskid);
 
   /* Indicate whether the worker has to throw away results */
   return task ? 0 : -1;
@@ -240,7 +236,6 @@ int64 mutex_workqueue_popresult( int *iovec_entries, struct iovec ** iovec, int 
   for (task = &tasklist; *task; task = &((*task)->next))
     if (((*task)->tasktype & TASK_CLASS_MASK ) == TASK_DONE) {
       struct ot_task *ptask = *task;
-fprintf(stderr, "Got task %lu type %d with %d entries\n", (*task)->taskid, (*task)->tasktype, ptask->iovec_entries);
       *iovec_entries = ptask->iovec_entries;
       *iovec         = ptask->iovec;
       sock           = ptask->sock;
