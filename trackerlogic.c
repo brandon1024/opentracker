@@ -525,7 +525,7 @@ void trackerlogic_add_random_torrents(size_t amount) {
   ws.inbuf=malloc(G_INBUF_SIZE);
   ws.outbuf=malloc(G_OUTBUF_SIZE);
   ws.reply=ws.outbuf;
-  ws.hash=ws.inbuf;
+  ws.hash=(ot_hash*)ws.inbuf;
 
   while( amount-- ) {
     arc4random_buf(ws.hash, sizeof(ot_hash));
