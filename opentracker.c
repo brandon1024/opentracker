@@ -126,10 +126,10 @@ static void help( char *name ) {
   HELPLINE("-w file","specify whitelist file.");
 #endif
 
-  fprintf( stderr, "\nExample:   ./opentracker -i 127.0.0.1 -p 6969 -P 6969 -f ./opentracker.conf -i 10.1.1.23 -p 2710 -p 80\n" );
-  fprintf( stderr, "           Here -i 127.0.0.1 selects the ip address for the next -p 6969 and -P 6969.\n");
-  fprintf( stderr, "           If no port is bound from config file or command line, the last address given\n");
-  fprintf( stderr, "           (or ::1 if none is set) will be used on port 6969.\n");
+  HELPLINE("\nExample:   ./opentracker -i 127.0.0.1 -p 6969 -P 6969 -f ./opentracker.conf -i 10.1.1.23 -p 2710 -p 80");
+  HELPLINE("           Here -i 127.0.0.1 selects the ip address for the next -p 6969 and -P 6969.");
+  HELPLINE("           If no port is bound from config file or command line, the last address given");
+  HELPLINE("           (or ::1 if none is set) will be used on port 6969.");
 }
 #undef HELPLINE
 
