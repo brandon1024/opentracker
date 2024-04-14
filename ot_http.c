@@ -139,7 +139,10 @@ ssize_t http_sendiovecdata( const int64 sock, struct ot_workstruct *ws, int iove
   array_reset( &cookie->request );
 
   /* If we came here, wait for the answer is over */
-  cookie->flag &= ~STRUCT_HTTP_FLAG_WAITINGFORTASK;
+  if (cookie->flag & STRUCT_HTTP_FLAG_WAITINGFORTASK) {
+    io_dontwantread( sock );
+    cookie->flag &= ~STRUCT_HTTP_FLAG_WAITINGFORTASK;
+  }
 
 fprintf(stderr, "http_sendiovecdata sending %d iovec entries found cookie->batch == %p\n", iovec_entries, cookie->batch);
 
@@ -207,7 +210,6 @@ fprintf(stderr, "http_sendiovecdata adds a terminating 0 size buffer to batch\n"
   /* writeable sockets timeout after 10 minutes */
   taia_now( &t ); taia_addsec( &t, &t, OT_CLIENT_TIMEOUT_SEND );
   io_timeout( sock, t );
-  io_dontwantread( sock );
 fprintf (stderr, "http_sendiovecdata marks socket %lld as wantwrite\n", sock);
   io_wantwrite( sock );
   return 0;
