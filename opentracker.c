@@ -722,7 +722,7 @@ int main( int argc, char **argv ) {
   trackerlogic_init( );
 
 #ifdef _DEBUG_RANDOMTORRENTS
-  fprintf(stderr, "DEBUG: Generating %d random peers on random torrents. This may take a while. (Setting RANDOMTORRENTS in trackerlogic.h\n", RANDOMTORRENTS);
+  fprintf(stderr, "DEBUG: Generating %d random peers on random torrents. This may take a while. (Setting RANDOMTORRENTS in trackerlogic.h)\n", RANDOMTORRENTS);
   trackerlogic_add_random_torrents(RANDOMTORRENTS);
   fprintf(stderr, "... done.\n");
 #endif
