@@ -722,7 +722,8 @@ int main( int argc, char **argv ) {
   trackerlogic_init( );
 
 #ifdef _DEBUG_RANDOMTORRENTS
-  trackerlogic_add_random_torrents(1024*1024*1);
+  fprintf(stderr, "DEBUG: Generating %zd random peers on random torrents. This may take a while. (Setting RANDOMTORRENTS in trackerlogic.h\n", RANDOMTORRENTS);
+  trackerlogic_add_random_torrents(RANDOMTORRENTS);
 #endif
 
   if( statefile )

@@ -67,6 +67,10 @@ typedef struct { ot_ip6 address; int bits; }
 #define OT_BUCKET_COUNT (1<<OT_BUCKET_COUNT_BITS)
 #define OT_BUCKET_COUNT_SHIFT (32-OT_BUCKET_COUNT_BITS)
 
+/* if _DEBUG_RANDOMTORRENTS is set, this is the amount of torrents to create
+   on startup */
+#define RANDOMTORRENTS (1024*1024*1)
+
 /* From opentracker.c */
 extern time_t g_now_seconds;
 extern volatile int g_opentracker_running;
