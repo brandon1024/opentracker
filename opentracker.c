@@ -643,6 +643,7 @@ static void *time_caching_worker(void *args) {
     g_now_seconds = time(NULL);
     sleep(5);
   }
+  return NULL;
 }
 
 int main(int argc, char **argv) {
