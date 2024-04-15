@@ -761,6 +761,8 @@ int main(int argc, char **argv) {
     ot_try_bind(serverip, 6969, FLAG_UDP);
   }
 
+  defaul_signal_handlers();
+
 #ifdef WANT_SYSLOGS
   openlog("opentracker", 0, LOG_USER);
   setlogmask(LOG_UPTO(LOG_INFO));
@@ -783,7 +785,6 @@ int main(int argc, char **argv) {
   io_setcookie(g_self_pipe[0], (void *)FLAG_SELFPIPE);
   io_wantread(g_self_pipe[0]);
 
-  defaul_signal_handlers();
   /* Init all sub systems. This call may fail with an exit() */
   trackerlogic_init();
 
