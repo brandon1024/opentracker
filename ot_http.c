@@ -6,6 +6,7 @@
 /* System */
 #include <arpa/inet.h>
 #include <pthread.h>
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
