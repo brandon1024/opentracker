@@ -31,9 +31,9 @@
 #include "trackerlogic.h"
 
 #ifdef WANT_NO_AUTO_FREE
-#define OT_IOB_INIT iob_init
+#define OT_IOB_INIT(B) bzero(B, sizeof(io_batch))
 #else
-#define OT_IOB_INIT iob_init_autofree
+#define OT_IOB_INIT(B) iob_init_autofree(B, 0)
 #endif
 
 #define OT_MAXMULTISCRAPE_COUNT 64
@@ -87,7 +87,7 @@ static void http_senddata(const int64 sock, struct ot_workstruct *ws) {
     memcpy(outbuf, ws->reply + written_size, ws->reply_size - written_size);
     if (!cookie->batch) {
       cookie->batch = malloc(sizeof(io_batch));
-      OT_IOB_INIT(cookie->batch, 0);
+      OT_IOB_INIT(cookie->batch);
       cookie->batches = 1;
     }
 
@@ -185,7 +185,7 @@ ssize_t http_sendiovecdata(const int64 sock, struct ot_workstruct *ws, int iovec
         iovec_free(&iovec_entries, &iovector);
         HTTPERROR_500;
       }
-      OT_IOB_INIT(cookie->batch, 0);
+      OT_IOB_INIT(cookie->batch);
       cookie->batches = 1;
     }
     current = cookie->batch + cookie->batches - 1;
@@ -199,7 +199,7 @@ ssize_t http_sendiovecdata(const int64 sock, struct ot_workstruct *ws, int iovec
         if (new_batch) {
           cookie->batch = new_batch;
           current       = cookie->batch + cookie->batches++;
-          OT_IOB_INIT(current, 0);
+          OT_IOB_INIT(current);
         }
       }
       iob_addbuf_free(current, iovector[i].iov_base, iovector[i].iov_len);
