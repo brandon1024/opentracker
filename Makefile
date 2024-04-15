@@ -38,6 +38,10 @@ FEATURES+=-DWANT_COMPRESSION_GZIP_ALWAYS
 #FEATURES+=-DWANT_DEV_RANDOM
 FEATURES+=-DWANT_FULLSCRAPE
 
+# You need libowfat version 0.34 to allow for automatic release of chunks during
+# full scrape transfer, if you rely on an older versions, enable this flag
+#FEATURES+=-DWANT_NO_AUTO_FREE
+
 # Is enabled on BSD systems by default in trackerlogic.h
 # on Linux systems you will need -lbds
 #FEATURES+=-DWANT_ARC4RANDOM
