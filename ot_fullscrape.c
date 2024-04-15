@@ -285,16 +285,10 @@ static void fullscrape_make_gzip(int taskid, ot_tasktype mode) {
     return mutex_bucket_unlock(bucket, 0);
   }
 
-  {
-    unsigned int pending;
-    int          bits;
-    deflatePending(&strm, &pending, &bits);
-    pending += (bits ? 1 : 0);
-
-    if (pending) {
+  /* Check if there's a last batch of data in the zlib buffer */
+  if (!strm.avail_out) {
       /* Allocate a fresh output buffer */
-      iovector.iov_base = malloc(pending);
-      iovector.iov_len  = pending;
+      iovector.iov_base = malloc(OT_SCRAPE_CHUNK_SIZE);
 
       if (!iovector.iov_base) {
         fprintf(stderr, "Problem with iovec_fix_increase_or_free\n");
@@ -302,13 +296,14 @@ static void fullscrape_make_gzip(int taskid, ot_tasktype mode) {
         return mutex_bucket_unlock(bucket, 0);
       }
       strm.next_out  = iovector.iov_base;
-      strm.avail_out = pending;
+      strm.avail_out = OT_SCRAPE_CHUNK_SIZE;
       if (deflate(&strm, Z_FINISH) < Z_OK)
         fprintf(stderr, "deflate() failed while in fullscrape_make()'s endgame.\n");
 
-      if (mutex_workqueue_pushchunked(taskid, &iovector))
+      /* Only pass the new buffer if there actually was some data left in the buffer */
+      iovector.iov_len = (char *)strm.next_out - (char *)iovector.iov_base;
+      if (!iovector.iov_len || mutex_workqueue_pushchunked(taskid, &iovector))
         free(iovector.iov_base);
-    }
   }
 
   deflateEnd(&strm);
