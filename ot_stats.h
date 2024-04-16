@@ -48,7 +48,4 @@ size_t             stats_return_tracker_version(char *reply);
 void               stats_init(void);
 void               stats_deinit(void);
 
-extern const char *g_version_rijndael_c;
-extern const char *g_version_livesync_c;
-
 #endif

@@ -760,5 +760,3 @@ ssize_t http_handle_request(const int64 sock, struct ot_workstruct *ws) {
   http_senddata(sock, ws);
   return ws->reply_size;
 }
-
-const char *g_version_http_c = "$Source$: $Revision$\n";

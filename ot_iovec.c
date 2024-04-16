@@ -90,5 +90,3 @@ size_t iovec_length(const int *iovec_entries, const struct iovec **iovector) {
     length += ((*iovector)[i]).iov_len;
   return length;
 }
-
-const char *g_version_iovec_c = "$Source$: $Revision$\n";

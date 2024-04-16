@@ -170,5 +170,3 @@ void sync_deliver( int64 socket ) {
 }
 
 #endif
-
-const char *g_version_sync_c = "$Source$: $Revision$\n";

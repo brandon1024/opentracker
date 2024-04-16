@@ -49,10 +49,12 @@ FEATURES+=-DWANT_FULLSCRAPE
 #FEATURES+=-D_DEBUG_HTTPERROR
 #FEATURES+=-D_DEBUG_RANDOMTORRENTS
 
+GIT_VERSION=$(shell sh -c 'command -v git >/dev/null && test -d .git && git rev-parse HEAD || echo _git_or_commit_not_found_')
+
 OPTS_debug=-D_DEBUG -g -ggdb # -pg -fprofile-arcs -ftest-coverage
 OPTS_production=-O3
 
-CFLAGS+=-I$(LIBOWFAT_HEADERS) -Wall -pipe -pthread -Wextra #-ansi -pedantic
+CFLAGS+=-I$(LIBOWFAT_HEADERS) -DGIT_VERSION=$(GIT_VERSION) -Wall -pipe -pthread -Wextra #-ansi -pedantic
 LDFLAGS+=-L$(LIBOWFAT_LIBRARY) -lowfat -pthread -lz
 #LDFLAGS+=-lbsd
 

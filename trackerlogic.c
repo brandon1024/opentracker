@@ -596,5 +596,3 @@ void trackerlogic_deinit(void) {
   /* Release mutexes */
   mutex_deinit();
 }
-
-const char *g_version_trackerlogic_c = "$Source$: $Revision$\n";

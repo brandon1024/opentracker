@@ -559,5 +559,3 @@ int accesslist_is_blessed(ot_ip6 ip, ot_permissions permissions) {
       return 1;
   return 0;
 }
-
-const char *g_version_accesslist_c = "$Source$: $Revision$\n";

@@ -234,5 +234,3 @@ void udp_init(int64 sock, unsigned int worker_count) {
   while (worker_count--)
     pthread_create(&thread_id, NULL, udp_worker, (void *)sock);
 }
-
-const char *g_version_udp_c = "$Source$: $Revision$\n";

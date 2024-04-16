@@ -142,5 +142,3 @@ static pthread_t thread_id;
 void clean_init(void) { pthread_create(&thread_id, NULL, clean_worker, NULL); }
 
 void clean_deinit(void) { pthread_cancel(thread_id); }
-
-const char *g_version_clean_c = "$Source$: $Revision$\n";

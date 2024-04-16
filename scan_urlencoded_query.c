@@ -162,5 +162,3 @@ ssize_t scan_fixed_int(char *data, size_t len, int *tmp) {
     *tmp = -*tmp;
   return len;
 }
-
-const char *g_version_scan_urlencoded_query_c = "$Source$: $Revision$\n";

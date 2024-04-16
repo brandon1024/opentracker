@@ -282,5 +282,3 @@ void vector_fixup_peers(ot_vector *vector, size_t peer_size) {
   if (need_fix)
     vector->data = realloc(vector->data, vector->space * peer_size);
 }
-
-const char *g_version_vector_c = "$Source$: $Revision$\n";

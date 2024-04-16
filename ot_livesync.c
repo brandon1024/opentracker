@@ -237,4 +237,3 @@ static void *livesync_worker(void *args) {
 }
 
 #endif
-const char *g_version_livesync_c = "$Source$: $Revision$\n";

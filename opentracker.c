@@ -806,5 +806,3 @@ int main(int argc, char **argv) {
 
   return 0;
 }
-
-const char *g_version_opentracker_c = "$Source$: $Revision$\n";

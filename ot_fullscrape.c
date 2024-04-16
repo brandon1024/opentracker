@@ -313,4 +313,3 @@ static void fullscrape_make_gzip(int taskid, ot_tasktype mode) {
 
 /* WANT_FULLSCRAPE */
 #endif
-const char *g_version_fullscrape_c = "$Source$: $Revision$\n";

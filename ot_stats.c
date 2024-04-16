@@ -476,9 +476,9 @@ static void stats_return_fulllog(int *iovec_entries, struct iovec **iovector, ch
         return;
       re = r + 32 * OT_STATS_TMPSIZE;
     }
-    r    += sprintf(r, "%08ld: ", loglist->time);
-    r    += fmt_ip6c(r, loglist->ip);
-    *r++  = '\n';
+    r      += sprintf(r, "%08ld: ", loglist->time);
+    r      += fmt_ip6c(r, loglist->ip);
+    *r++    = '\n';
     memcpy(r, loglist->data, loglist->size);
     r      += loglist->size;
     *r++    = '\n';
@@ -518,10 +518,8 @@ static size_t stats_return_everything(char *reply) {
   r += sprintf(r, "  <completed>\n    <count>%llu</count>\n  </completed>\n", ot_overall_completed);
   r += sprintf(r, "  <connections>\n");
   r += sprintf(r, "    <tcp>\n      <accept>%llu</accept>\n      <announce>%llu</announce>\n      <scrape>%llu</scrape>\n    </tcp>\n",
-               ot_overall_tcp_connections, ot_overall_tcp_successfulannounces, ot_overall_tcp_successfulscrapes);
-  r += sprintf(
-      r,
-      "    <udp>\n      <overall>%llu</overall>\n      <connect>%llu</connect>\n      <announce>%llu</announce>\n      <scrape>%llu</scrape>\n      <missmatch>%llu</missmatch>\n    </udp>\n",
+      ot_overall_tcp_connections, ot_overall_tcp_successfulannounces, ot_overall_tcp_successfulscrapes);
+  r += sprintf(r, "    <udp>\n      <overall>%llu</overall>\n      <connect>%llu</connect>\n      <announce>%llu</announce>\n      <scrape>%llu</scrape>\n      <missmatch>%llu</missmatch>\n    </udp>\n",
       ot_overall_udp_connections, ot_overall_udp_connects, ot_overall_udp_successfulannounces, ot_overall_udp_successfulscrapes,
       ot_overall_udp_connectionidmissmatches);
   r += sprintf(r, "    <livesync>\n      <count>%llu</count>\n    </livesync>\n", ot_overall_sync_count);
@@ -541,14 +539,10 @@ static size_t stats_return_everything(char *reply) {
   return r - reply;
 }
 
-extern const char *g_version_opentracker_c, *g_version_accesslist_c, *g_version_clean_c, *g_version_fullscrape_c, *g_version_http_c, *g_version_iovec_c,
-    *g_version_mutex_c, *g_version_stats_c, *g_version_udp_c, *g_version_vector_c, *g_version_scan_urlencoded_query_c, *g_version_trackerlogic_c,
-    *g_version_livesync_c, *g_version_rijndael_c;
-
 size_t stats_return_tracker_version(char *reply) {
-  return sprintf(reply, "%s%s%s%s%s%s%s%s%s%s%s%s%s%s", g_version_opentracker_c, g_version_accesslist_c, g_version_clean_c, g_version_fullscrape_c,
-                 g_version_http_c, g_version_iovec_c, g_version_mutex_c, g_version_stats_c, g_version_udp_c, g_version_vector_c,
-                 g_version_scan_urlencoded_query_c, g_version_trackerlogic_c, g_version_livesync_c, g_version_rijndael_c);
+#define QUOTE(name) #name
+#define SQUOTE(name) QUOTE(name)
+  return sprintf(reply, "https://erdgeist.org/gitweb/opentracker/commit/?id=" SQUOTE(GIT_VERSION) "\n");
 }
 
 size_t return_stats_for_tracker(char *reply, int mode, int format) {
@@ -775,5 +769,3 @@ void stats_init() {
 void stats_deinit() {
     pthread_cancel(thread_id);
 }
-
-const char *g_version_stats_c = "$Source$: $Revision$\n";
