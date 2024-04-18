@@ -1,6 +1,6 @@
 .Dd 15/4/2024
 .Dt opentracker 1
-.Os posix
+.Os Unix
 .Sh opentracker
 .Nm opentracker
 .Nd a free and open bittorrent tracker
@@ -18,14 +18,14 @@
 .Sh DESCRIPTION
 .Nm
 is a bittorrent tracker that implements announce and scrape actions over the
-udp and the plain http protocol, aiming for minimal resource usage.
+UDP and the plain http protocol, aiming for minimal resource usage.
 .Pp
 
-When invoked with parameters, it binds to tcp and udp port 6969 on all
+When invoked with parameters, it binds to TCP and UDP port 6969 on all
 interfaces. The recommended way to configure opentracker is by providing a
 config file using the
 .Op Fl f Ar config
-option. See 
+option. See
 .Xr opentracker.conf 4
 for details.
 .Pp
@@ -52,12 +52,12 @@ or
 .Op Fl P
 commands will limit opentracker to only bind to this address.
 .It Fl p Ar port-bind-tcp
-Bind to the tcp port on the last preceding ip address set with the
+Bind to the TCP port on the last preceding ip address set with the
 .Op Fl i ip-select
 option or to all available addresses if none has been set. Can be given multiple
 times.
-.It Fl p Ar port-bind-udp
-Bind to the udp port on the last preceding ip address set with the
+.It Fl P Ar port-bind-udp
+Bind to the UDP port on the last preceding ip address set with the
 .Op Fl i ip-select
 option or to all available addresses if none has been set. Can be given multiple
 times.
@@ -95,16 +95,17 @@ options, this option sets the location of the accesslist.
 
 Start
 .Nm
-bound on udp and tcp ports 6969 on IPv6 localhost.
+bound on UDP and TCP ports 6969 on IPv6 localhost.
 
 .Dl # ./opentracker -i ::1 -p 6969 -P 6969
 
 .Pp
 Start
 .Nm
-bound on port udp and tcp port 6868 on IPv4 localhost and allow
-privileged access from the nnetwork 192.168/16 while redirecting
-HTTP clients accessing / to https://my-trackersite.com/.
+bound on UDP port 6868 and TCP port 6868 on IPv4 localhost and allow
+privileged access from the network 192.168/16 while redirecting
+HTTP clients accessing the root directory, which is not covered by the
+bittorrent tracker protocol, to https://my-trackersite.com/.
 
 .Dl # ./opentracker -i 192.168.0.4 -p 6868 -P 6969 -A 192.168/16 -r https://my-trackersite.com/
 
@@ -112,14 +113,30 @@ The announce URLs are http://192.168.0.4:6868/announce and
 udp://192.168.0.4:6868/announce respectively.
 
 .Sh FILES
-.Bl -tag -width -compact
+.Bl -tag -width indent
 .It Pa opentracker.conf
+The
+.Nm
 config file.
 .El
 .Sh SEE ALSO
 .Xr opentracker.conf 4
+.Pp
+opentracker documentation
+.Lk https://erdgeist.org/arts/software/opentracker
+.Pp
+Bittorrent tracker protocol
+.Lk http://www.bittorrent.org/beps/bep_0015.html
 .Sh
 .Sh AUTHOR
 .An Dirk Engling
-.Aq erdgeist@erdgeist.org .
+.Aq Mt erdgeist@erdgeist.org .
+.Sh LICENSE
+This software is released under the Beerware License:
 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software with the following
+terms and conditions:
+
+If you meet the author(s) someday, and you think this software is worth it, you can buy them
+a beer in return.
