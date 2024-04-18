@@ -159,7 +159,9 @@ ssize_t http_sendiovecdata(const int64 sock, struct ot_workstruct *ws, int iovec
 
   if (iovec_entries) {
 
-    if (cookie->flag & STRUCT_HTTP_FLAG_GZIP)
+    if (cookie->flag & STRUCT_HTTP_FLAG_ZSTD)
+      encoding = "Content-Encoding: zstd\r\n";
+    else if (cookie->flag & STRUCT_HTTP_FLAG_GZIP)
       encoding = "Content-Encoding: gzip\r\n";
     else if (cookie->flag & STRUCT_HTTP_FLAG_BZIP2)
       encoding = "Content-Encoding: bzip2\r\n";
@@ -369,19 +371,34 @@ static ssize_t http_handle_fullscrape(const int64 sock, struct ot_workstruct *ws
   }
 #endif
 
-#ifdef WANT_COMPRESSION_GZIP
+
+#if defined(WANT_COMPRESSION_GZIP) || defined(WANT_COMPRESSION_ZSTD)
   ws->request[ws->request_size - 1] = 0;
-#ifndef WANT_COMPRESSION_GZIP_ALWAYS
+#ifdef WANT_COMPRESSION_GZIP
   if (strstr(ws->request, "gzip")) {
-#endif
     cookie->flag |= STRUCT_HTTP_FLAG_GZIP;
-    format        = TASK_FLAG_GZIP;
-    stats_issue_event(EVENT_FULLSCRAPE_REQUEST_GZIP, 0, (uintptr_t)cookie->ip);
-#ifndef WANT_COMPRESSION_GZIP_ALWAYS
-  } else
+    format       |= TASK_FLAG_GZIP;
+  }
+#endif
+#ifdef WANT_COMPRESSION_ZSTD
+  if (strstr(ws->request, "zstd")) {
+    cookie->flag |= STRUCT_HTTP_FLAG_ZSTD;
+    format       |= TASK_FLAG_ZSTD;
+  }
+#endif
+
+#if defined(WANT_COMPRESSION_ZSTD) && defined(WANT_COMPRESSION_ZSTD_ALWAYS)
+  cookie->flag |= STRUCT_HTTP_FLAG_ZSTD;
+  format       |= TASK_FLAG_ZSTD;
+#endif
+
+#if defined(WANT_COMPRESSION_GZIP) && defined(WANT_COMPRESSION_GZIP_ALWAYS)
+  cookie->flag |= STRUCT_HTTP_FLAG_GZIP;
+  format       |= TASK_FLAG_GZIP;
 #endif
 #endif
-    stats_issue_event(EVENT_FULLSCRAPE_REQUEST, 0, (uintptr_t)cookie->ip);
+
+  stats_issue_event(EVENT_FULLSCRAPE_REQUEST, 0, (uintptr_t)cookie->ip);
 
 #ifdef _DEBUG_HTTPERROR
   fprintf(stderr, "%s", ws->debugbuf);

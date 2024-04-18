@@ -10,8 +10,9 @@ typedef enum {
   STRUCT_HTTP_FLAG_WAITINGFORTASK      = 1,
   STRUCT_HTTP_FLAG_GZIP                = 2,
   STRUCT_HTTP_FLAG_BZIP2               = 4,
-  STRUCT_HTTP_FLAG_CHUNKED             = 8,
-  STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER = 16
+  STRUCT_HTTP_FLAG_ZSTD                = 8,
+  STRUCT_HTTP_FLAG_CHUNKED             = 16,
+  STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER = 32
 } STRUCT_HTTP_FLAG;
 
 struct http_data {

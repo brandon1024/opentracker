@@ -59,7 +59,8 @@ typedef enum {
 
   TASK_FLAG_GZIP                 = 0x1000,
   TASK_FLAG_BZIP2                = 0x2000,
-  TASK_FLAG_CHUNKED              = 0x4000,
+  TASK_FLAG_ZSTD                 = 0x4000,
+  TASK_FLAG_CHUNKED              = 0x8000,
 
   TASK_TASK_MASK                 = 0x0fff,
   TASK_CLASS_MASK                = 0x0f00,
