@@ -165,7 +165,7 @@ ssize_t http_sendiovecdata(const int64 sock, struct ot_workstruct *ws, int iovec
       encoding = "Content-Encoding: bzip2\r\n";
 
     if (!(cookie->flag & STRUCT_HTTP_FLAG_CHUNKED))
-      header_size = asprintf(&header, "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\n%sContent-Length: %zd\r\n\r\n", encoding, size);
+      header_size = asprintf(&header, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n%sContent-Length: %zd\r\n\r\n", encoding, size);
     else {
       if (!(cookie->flag & STRUCT_HTTP_FLAG_CHUNKED_IN_TRANSFER)) {
         header_size =
