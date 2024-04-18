@@ -86,6 +86,7 @@
 #      or network allowed to fetch stats here.
 #
 # access.stats 192.168.0.23
+# access.stats 10.1.1.23
 #
 #      There is another way of hiding your stats. You can obfuscate the path
 #      to them. Normally it is located at /stats but you can configure it to
