@@ -2,7 +2,7 @@
 #
 
 # I)   Address opentracker will listen on, using both, tcp AND udp family
-#      (note, that port 6969 is implicite if ommitted).
+#      (note, that port 6969 is implicit if omitted).
 #
 #      If no listen option is given (here or on the command line), opentracker
 #      listens on 0.0.0.0:6969 tcp and udp.
