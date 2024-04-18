@@ -9,9 +9,7 @@
 .Sh DESCRIPTION
 The
 .Nm
-configuration file specifies various options for configuring the behavior of the
-.Nm
-program.
+configuration file specifies various options for configuring the behavior of the opentracker program.
 .Pp
 Lines starting with '#' are comments and are ignored. Options are specified as 'keyword value' pairs.
 .Pp
@@ -42,11 +40,11 @@ Specifies the path to the FIFO (named pipe) used for dynamic changesets to acces
 .It access.fifo_delete Ar path/to/deleter.fifo
 Specifies the path to the FIFO (named pipe) used for dynamic changesets to accesslists. Info hashes written to this FIFO will be removed from the main accesslist file.
 
-.It access.stats Ar ip_address
-Specifies the IP address allowed to fetch stats from opentracker.
+.It access.stats Ar ip_address_or_network
+Specifies the IP address or network in CIDR notation allowed to fetch stats from opentracker.
 
 .It access.stats_path Ar path
-Specifies the path to the stats location. You can configure opentracker to appear anywhere on your tracker.
+Specifies the path to the stats location. You can configure opentracker to appear anywhere on your tracker. Defaults to /stats.
 
 .It access.proxy Ar ip_address_or_network
 Specifies the IP address or network of the reverse proxies. Opentracker will take the X-Forwarded-For address instead of the source IP address.
@@ -64,7 +62,7 @@ Specifies the admin IP address for old-style (HTTP-based) asynchronous tracker s
 Specifies the directory opentracker will chroot/chdir to. All black/white list files must be located in this directory.
 
 .It tracker.user Ar username
-Specifies the user opentracker will setuid to.
+Specifies the user opentracker will setuid to after binding to potentially privileged ports.
 
 .It tracker.redirect_url Ar URL
 Specifies the URL opentracker will redirect to in response to a "GET / HTTP" request.
@@ -84,5 +82,5 @@ To specify the address opentracker will listen on for UDP connections:
 
 .Sh AUTHOR
 .An Dirk Engling
-.Aq erdgeist@erdgeist.org
+.Aq Mt erdgeist@erdgeist.org
 
