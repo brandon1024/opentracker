@@ -17,13 +17,13 @@ The following options are available:
 
 .Bl -tag -width ".It access.proxy" -compact
 .It listen.tcp_udp Ar address
-Specifies the address opentracker will listen on for both TCP and UDP connections. If not specified, opentracker listens on 0.0.0.0:6969 by default.
+Specifies an address opentracker will listen on for both TCP and UDP connections. If none are specified, opentracker listens on 0.0.0.0:6969 by default. Can be added more than once.
 
 .It listen.tcp Ar address
-Specifies the address opentracker will listen on for TCP connections.
+Specifies the address opentracker will listen on for TCP connections. Can be added more than once.
 
 .It listen.udp Ar address
-Specifies the address opentracker will listen on for UDP connections.
+Specifies the address opentracker will listen on for UDP connections. Can be added more than once.
 
 .It listen.udp.workers Ar threads
 Specifies how many threads will be spawned to handle UDP connections. Defaults to 4.
@@ -47,13 +47,13 @@ Specifies the IP address or network in CIDR notation allowed to fetch stats from
 Specifies the path to the stats location. You can configure opentracker to appear anywhere on your tracker. Defaults to /stats.
 
 .It access.proxy Ar ip_address_or_network
-Specifies the IP address or network of the reverse proxies. Opentracker will take the X-Forwarded-For address instead of the source IP address.
+Specifies the IP address or network of the reverse proxies. Opentracker will take the X-Forwarded-For address instead of the source IP address. Can be added more than once.
 
 .It livesync.cluster.listen Ar ip_address:port
 Specifies the IP address and port opentracker will listen on for incoming live sync packets to keep a cluster of opentrackers synchronized.
 
 .It livesync.cluster.node_ip Ar ip_address
-Specifies the trusted IP address for sync between trackers running in a cluster.
+Specifies one trusted IP address for sync between trackers running in a cluster. Can be added more than once.
 
 .It batchsync.cluster.admin_ip Ar ip_address
 Specifies the admin IP address for old-style (HTTP-based) asynchronous tracker syncing.
