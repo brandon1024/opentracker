@@ -27,6 +27,9 @@ Specifies the address opentracker will listen on for TCP connections.
 .It listen.udp Ar address
 Specifies the address opentracker will listen on for UDP connections.
 
+.It listen.udp.workers Ar threads
+Specifies how many threads will be spawned to handle UDP connections. Defaults to 4.
+
 .It access.whitelist Ar path/to/whitelist
 Specifies the path to the whitelist file containing all torrent hashes that opentracker will serve. Use this option if opentracker runs in a non-open mode.
 
