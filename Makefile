@@ -18,19 +18,23 @@ LIBOWFAT_LIBRARY=$(PREFIX)/libowfat
 BINDIR?=$(PREFIX)/bin
 STRIP?=strip
 
-#FEATURES+=-DWAND_V4_ONLY
+#FEATURES+=-DWANT_V4_ONLY
 #FEATURES+=-DWANT_ACCESSLIST_BLACK
 #FEATURES+=-DWANT_ACCESSLIST_WHITE
 #FEATURES+=-DWANT_DYNAMIC_ACCESSLIST
 
 #FEATURES+=-DWANT_SYNC_LIVE
 #FEATURES+=-DWANT_IP_FROM_QUERY_STRING
-FEATURES+=-DWANT_COMPRESSION_GZIP
-FEATURES+=-DWANT_COMPRESSION_GZIP_ALWAYS
 
-#FEATURES+=-DWANT_COMPRESSION_ZSTD
-#FEATURES+=-DWANT_COMPRESSION_ZSTD_ALWAYS
-#LDFLAGS+=-lzstd
+# If you want gzip support to be compiled in, uncomment the next include.
+# You can further modify the behaviour by setting DWANT_COMPRESSION_GZIP_ALWAYS
+# in Makefile.gzip
+include Makefile.gzip
+
+# If you want zstd support to be compiled in, uncomment the next include.
+# You can further modify the behaviour by setting DWANT_COMPRESSION_ZSTD_ALWAYS
+# in Makefile.zstd
+#include Makefile.zstd
 
 #FEATURES+=-DWANT_LOG_NETWORKS
 #FEATURES+=-DWANT_RESTRICT_STATS
@@ -48,8 +52,8 @@ FEATURES+=-DWANT_FULLSCRAPE
 #FEATURES+=-DWANT_NO_AUTO_FREE
 
 # Is enabled on BSD systems by default in trackerlogic.h
-# on Linux systems you will need -lbds
-#FEATURES+=-DWANT_ARC4RANDOM
+# on Linux systems the include Makefile adds -lbsd
+#include Makefile.arc4random
 
 #FEATURES+=-D_DEBUG_HTTPERROR
 #FEATURES+=-D_DEBUG_RANDOMTORRENTS
@@ -60,8 +64,7 @@ OPTS_debug=-D_DEBUG -g -ggdb # -pg -fprofile-arcs -ftest-coverage
 OPTS_production=-O3
 
 CFLAGS+=-I$(LIBOWFAT_HEADERS) -DGIT_VERSION=$(GIT_VERSION) -Wall -pipe -pthread -Wextra #-ansi -pedantic
-LDFLAGS+=-L$(LIBOWFAT_LIBRARY) -lowfat -pthread -lz
-#LDFLAGS+=-lbsd
+LDFLAGS+=-L$(LIBOWFAT_LIBRARY) -lowfat -pthread
 
 BINARY =opentracker
 HEADERS=trackerlogic.h scan_urlencoded_query.h ot_mutex.h ot_stats.h ot_vector.h ot_clean.h ot_udp.h ot_iovec.h ot_fullscrape.h ot_accesslist.h ot_http.h ot_livesync.h ot_rijndael.h
