@@ -329,6 +329,7 @@ size_t stats_top_txt(char *reply, int amount) {
 
   byte_zero(top100s, sizeof(top100s));
   byte_zero(top100c, sizeof(top100c));
+  byte_zero(top100l, sizeof(top100l));
 
   for (bucket = 0; bucket < OT_BUCKET_COUNT; ++bucket) {
     ot_vector *torrents_list  = mutex_bucket_lock(bucket);
