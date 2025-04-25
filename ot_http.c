@@ -32,7 +32,7 @@
 #include "trackerlogic.h"
 
 #ifdef WANT_NO_AUTO_FREE
-#define OT_IOB_INIT(B) bzero(B, sizeof(io_batch))
+#define OT_IOB_INIT(B) (bzero(B, sizeof(io_batch)), 0)
 #else
 #define OT_IOB_INIT(B) iob_init_autofree(B, 0)
 #endif
@@ -88,7 +88,15 @@ static void http_senddata(const int64 sock, struct ot_workstruct *ws) {
     memcpy(outbuf, ws->reply + written_size, ws->reply_size - written_size);
     if (!cookie->batch) {
       cookie->batch = malloc(sizeof(io_batch));
-      OT_IOB_INIT(cookie->batch);
+      if (!cookie->batch || OT_IOB_INIT(cookie->batch) == -1) {
+        free(cookie->batch);
+        free(outbuf);
+        array_reset(&cookie->request);
+        free(cookie);
+        io_close(sock);
+        return;
+      }
+
       cookie->batches = 1;
     }
 
@@ -183,12 +191,12 @@ ssize_t http_sendiovecdata(const int64 sock, struct ot_workstruct *ws, int iovec
 
     if (!cookie->batch) {
       cookie->batch = malloc(sizeof(io_batch));
-      if (!cookie->batch) {
+      if (!cookie->batch || OT_IOB_INIT(cookie->batch) == -1) {
+        free(cookie->batch);
         free(header);
         iovec_free(&iovec_entries, &iovector);
         HTTPERROR_500;
       }
-      OT_IOB_INIT(cookie->batch);
       cookie->batches = 1;
     }
     current = cookie->batch + cookie->batches - 1;
@@ -201,8 +209,8 @@ ssize_t http_sendiovecdata(const int64 sock, struct ot_workstruct *ws, int iovec
         io_batch *new_batch = realloc(cookie->batch, (cookie->batches + 1) * sizeof(io_batch));
         if (new_batch) {
           cookie->batch = new_batch;
-          current       = cookie->batch + cookie->batches++;
-          OT_IOB_INIT(current);
+          if (OT_IOB_INIT(current) != -1)
+            current = cookie->batch + cookie->batches++;
         }
       }
       iob_addbuf_free(current, iovector[i].iov_base, iovector[i].iov_len);
