@@ -67,12 +67,15 @@ void *vector_find_or_insert(ot_vector *vector, void *key, size_t member_size, si
     return match;
 
   if (vector->size + 1 > vector->space) {
-    size_t   new_space = vector->space ? OT_VECTOR_GROW_RATIO * vector->space : OT_VECTOR_MIN_MEMBERS;
-    uint8_t *new_data  = realloc(vector->data, new_space * member_size);
+    size_t    new_space = vector->space ? OT_VECTOR_GROW_RATIO * vector->space : OT_VECTOR_MIN_MEMBERS;
+    ptrdiff_t match_off = match - (uint8_t *)vector->data;
+    uint8_t  *new_data  = realloc(vector->data, new_space * member_size);
+
     if (!new_data)
       return NULL;
+
     /* Adjust pointer if it moved by realloc */
-    match         = new_data + (match - (uint8_t *)vector->data);
+    match         = new_data + match_off;
 
     vector->data  = new_data;
     vector->space = new_space;
