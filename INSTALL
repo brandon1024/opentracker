@@ -1,0 +1,139 @@
+		Building Opentracker
+
+Opentracker builds with CMake, which you must have installed. Additionally, you
+will need a suitable installation of libowfat (http://www.fefe.de/libowfat/)
+and depending on the build configuration, zlib, zstd, and libbsd (on Linux).
+
+	apt install build-essential git cmake libowfat-dev zlib1g-dev libzstd-dev libbsd-dev
+	dnf install cmake gcc git libowfat-devel zlib-devel libzstd-devel libbsd-devel
+
+Building opentracker in the default configuration is usually just a matter of
+running
+
+	cmake -S . -B build
+	make -C build
+	./build/opentracker
+
+or if you plan to install globally, you can do
+
+	cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -S . -B build
+	make -C build install
+	opentracker
+
+You can also build in debug mode, which will compile in some additional debug
+facilities
+
+	cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+	make -C build
+
+
+		Customizing Opentracker
+
+The default build configuration should be suitable for most people. If you want
+additional features, like accesslists or clustering support, you can build
+opentracker with the appropriate build options enabled.
+
+	cmake -DWANT_ACCESSLIST_BLACK=Y -S . -B build
+
+You can also disable build options.
+
+	cmake -DWANT_COMPRESSION_GZIP=N -S . -B build
+
+Here's a summary of all of the build options currently supported.
+
+	WANT_V4_ONLY
+		Compile opentracker with IPv4 only (without IPv6).
+
+	WANT_ACCESSLIST_BLACK
+		Enable support for configuring a torrent blacklist file.
+
+	WANT_ACCESSLIST_WHITE
+		Enable support for configuring a torrent whitelist file.
+
+	WANT_DYNAMIC_ACCESSLIST
+		Enable support for dynamic access lists, with fifo allowing to add or
+		delete torrents.
+
+	WANT_COMPRESSION_ZSTD
+		Compile opentracker with support for zstd compression. Requires libzstd.
+
+	WANT_COMPRESSION_ZSTD_ALWAYS
+		Configure opentracker to always offer zstd compression when serving
+		requests. Requires WANT_COMPRESSION_ZSTD.
+
+	WANT_COMPRESSION_GZIP
+		Compile opentracker with support for gzip compression. Requires zlib.
+		Enabled by default.
+
+	WANT_COMPRESSION_GZIP_ALWAYS
+		Configure opentracker to always offer gzip compression when serving
+		requests. Requires WANT_COMPRESSION_GZIP.
+
+	WANT_SYNC_LIVE
+		Build opentracker to run in a cluster.
+
+	WANT_IP_FROM_QUERY_STRING
+		Configure opentracker to use peer addresses from the appropriate query
+		string in announce requests. Recommended only for debugging purposes.
+
+	WANT_IP_FROM_PROXY (Experimental)
+		Use peer address from proxy variables.
+
+	WANT_LOG_NETWORKS (Experimental)
+		Log networks.
+
+	WANT_RESTRICT_STATS
+		Restrict access to sensitive stats endpoint, blessing source addresses
+		through configuration.
+
+	WANT_FULLLOG_NETWORKS
+		Undocumented.
+
+	WANT_LOG_NUMWANT
+		Undocumented.
+
+	WANT_MODEST_FULLSCRAPES
+		Undocumented.
+
+	WANT_SPOT_WOODPECKER
+		Undocumented.
+
+	WANT_SYSLOGS
+		Enable logging to syslog.
+
+	WANT_DEV_RANDOM
+		Use srandomdev (BSD). On Linux, requires libbsd.
+
+	WANT_ARC4RANDOM
+		Use arc4random (BSD). On Linux, requires libbsd.
+
+	WANT_FULLSCRAPE
+		Enable fullscrapes to allow clients to query for all tracked torrents.
+		Enabled by default.
+
+	WANT_NO_AUTO_FREE
+		Configure opentracker to disable automatic release of chunks during full
+		scrape transfer. Enabled by default for libowfat <0.34.
+
+	WANT_STATIC_LIBOWFAT
+		Link against static libowfat library. Enabled by default.
+
+	_DEBUG_HTTPERROR (Debug)
+		Log HTTP errors.
+
+	_DEBUG_RANDOMTORRENTS (Debug)
+		Generate random peers and torrents at startup for testing.
+
+
+		Building with libowfat Source Builds
+
+If libowfat isn't available in your environment and you're building it from
+source, you can help CMake find it with CMAKE_PREFIX_PATH:
+
+	cvs -d :pserver:cvs@cvs.fefe.de:/cvs -z9 co libowfat
+	cd libowfat
+	make
+
+	cd ../opentracker
+	CMAKE_PREFIX_PATH=../libowfat cmake -S . -B build
+	make -C build
