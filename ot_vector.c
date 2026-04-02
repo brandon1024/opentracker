@@ -45,7 +45,7 @@ void *binary_search(const void *const key, const void *base, const size_t member
   return (void *)base;
 }
 
-static uint8_t vector_hash_peer(ot_peer const *peer, size_t compare_size, int bucket_count) {
+static uint8_t vector_hash_peer(ot_peer const *peer, size_t compare_size, size_t bucket_count) {
   unsigned int hash = 5381;
   uint8_t     *p    = (uint8_t *)peer;
   while (compare_size--)
@@ -172,7 +172,7 @@ void vector_remove_torrent(ot_vector *vector, ot_torrent *match) {
   }
 }
 
-void vector_clean_list(ot_vector *vector, int num_buckets) {
+void vector_clean_list(ot_vector *vector, size_t num_buckets) {
   while (num_buckets--)
     free(vector[num_buckets].data);
   free(vector);
@@ -180,7 +180,7 @@ void vector_clean_list(ot_vector *vector, int num_buckets) {
 }
 
 void vector_redistribute_buckets(ot_peerlist *peer_list, size_t peer_size) {
-  int        tmp, bucket, bucket_size_new, num_buckets_new, num_buckets_old = 1;
+  size_t     tmp, bucket, bucket_size_new, num_buckets_new, num_buckets_old = 1;
   ot_vector *bucket_list_new, *bucket_list_old = &peer_list->peers;
   int (*sort_func)(const void *, const void *) = peer_size == OT_PEER_SIZE6 ? &vector_compare_peer6 : &vector_compare_peer4;
 
@@ -229,7 +229,7 @@ void vector_redistribute_buckets(ot_peerlist *peer_list, size_t peer_size) {
   /* Now sort them into the correct bucket */
   for (bucket = 0; bucket < num_buckets_old; ++bucket) {
     ot_peer *peers_old      = bucket_list_old[bucket].data;
-    int      peer_count_old = bucket_list_old[bucket].size;
+    size_t   peer_count_old = bucket_list_old[bucket].size;
     while (peer_count_old--) {
       ot_vector *bucket_dest = bucket_list_new;
       if (num_buckets_new > 1)

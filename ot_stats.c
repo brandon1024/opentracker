@@ -38,7 +38,7 @@
 #endif
 
 /* Forward declaration */
-static void stats_make(int *iovec_entries, struct iovec **iovector, ot_tasktype mode);
+static void stats_make(size_t *iovec_entries, struct iovec **iovector, ot_tasktype mode);
 #define OT_STATS_TMPSIZE 8192
 
 /* Clumsy counters... to be rethought */
@@ -113,7 +113,7 @@ static int stat_increase_network_count(stats_network_node **pnode, int depth, ui
 }
 
 static int stats_shift_down_network_count(stats_network_node **node, int depth, int shift) {
-  int i, rest = 0;
+  size_t i, rest = 0;
 
   if (!*node)
     return 0;
@@ -134,8 +134,7 @@ static int stats_shift_down_network_count(stats_network_node **node, int depth, 
 
 static size_t stats_get_highscore_networks(stats_network_node *node, int depth, ot_ip6 node_value, size_t *scores, ot_ip6 *networks, int network_count,
                                            int limit) {
-  size_t score = 0;
-  int    i;
+  size_t i, score = 0;
 
   if (!node)
     return 0;
@@ -195,7 +194,7 @@ static size_t stats_return_busy_networks(char *reply, stats_network_node *tree, 
   ot_ip6 networks[amount];
   ot_ip6 node_value;
   size_t scores[amount];
-  int    i;
+  size_t i;
   char  *r = reply;
 
   memset(scores, 0, sizeof(scores));
@@ -225,8 +224,7 @@ static size_t stats_return_busy_networks(char *reply, stats_network_node *tree, 
 static size_t stats_slash24s_txt(char *reply, size_t amount) {
   stats_network_node *slash24s_network_counters_root = NULL;
   char  *r = reply;
-  int    bucket;
-  size_t i, peer_size = OT_PEER_SIZE4;
+  size_t i, bucket, peer_size = OT_PEER_SIZE4;
 
   for (bucket = 0; bucket < OT_BUCKET_COUNT; ++bucket) {
     ot_vector *torrents_list = mutex_bucket_lock(bucket);
@@ -318,11 +316,10 @@ typedef struct {
 } ot_record;
 
 /* Fetches stats from tracker */
-size_t stats_top_txt(char *reply, int amount) {
-  size_t    j;
+size_t stats_top_txt(char *reply, size_t amount) {
+  size_t    j, idx, bucket;
   ot_record top100s[100], top100c[100], top100l[100];
   char     *r = reply, hex_out[42];
-  int       idx, bucket;
 
   if (amount > 100)
     amount = 100;
@@ -368,15 +365,15 @@ size_t stats_top_txt(char *reply, int amount) {
       return 0;
   }
 
-  r += sprintf(r, "Top %d torrents by peers:\n", amount);
+  r += sprintf(r, "Top %zd torrents by peers:\n", amount);
   for (idx = 0; idx < amount; ++idx)
     if (top100c[idx].val)
       r += sprintf(r, "\t%zd\t%s\n", top100c[idx].val, to_hex(hex_out, top100c[idx].hash));
-  r += sprintf(r, "Top %d torrents by seeds:\n", amount);
+  r += sprintf(r, "Top %zd torrents by seeds:\n", amount);
   for (idx = 0; idx < amount; ++idx)
     if (top100s[idx].val)
       r += sprintf(r, "\t%zd\t%s\n", top100s[idx].val, to_hex(hex_out, top100s[idx].hash));
-  r += sprintf(r, "Top %d torrents by leechers:\n", amount);
+  r += sprintf(r, "Top %zd torrents by leechers:\n", amount);
   for (idx = 0; idx < amount; ++idx)
     if (top100l[idx].val)
       r += sprintf(r, "\t%zd\t%s\n", top100l[idx].val, to_hex(hex_out, top100l[idx].hash));
@@ -477,7 +474,7 @@ static size_t             stats_return_numwants(char *reply) {
 #endif
 
 #ifdef WANT_FULLLOG_NETWORKS
-static void stats_return_fulllog(int *iovec_entries, struct iovec **iovector, char *r) {
+static void stats_return_fulllog(size_t *iovec_entries, struct iovec **iovector, char *r) {
   ot_log *loglist  = g_logchain_first, *llnext;
   char   *re       = r + OT_STATS_TMPSIZE;
 
@@ -591,7 +588,7 @@ size_t return_stats_for_tracker(char *reply, int mode, int format) {
   }
 }
 
-static void stats_make(int *iovec_entries, struct iovec **iovector, ot_tasktype mode) {
+static void stats_make(size_t *iovec_entries, struct iovec **iovector, ot_tasktype mode) {
   char *r;
 
   *iovec_entries = 0;
@@ -757,7 +754,7 @@ void stats_cleanup() {
 }
 
 static void *stats_worker(void *args) {
-  int           iovec_entries;
+  size_t        iovec_entries;
   struct iovec *iovector;
 
   (void)args;
