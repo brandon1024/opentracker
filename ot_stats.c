@@ -190,7 +190,7 @@ static size_t stats_get_highscore_networks(stats_network_node *node, int depth, 
   return score;
 }
 
-static size_t stats_return_busy_networks(char *reply, stats_network_node *tree, int amount, int limit) {
+static size_t stats_return_busy_networks(char *reply, stats_network_node *tree, size_t amount, int limit) {
   ot_ip6 networks[amount];
   ot_ip6 node_value;
   size_t scores[amount];
@@ -204,14 +204,14 @@ static size_t stats_return_busy_networks(char *reply, stats_network_node *tree, 
   stats_get_highscore_networks(tree, 0, node_value, scores, networks, amount, limit);
 
   r += sprintf(r, "Networks, limit /%d:\n", limit + STATS_NETWORK_NODE_BITWIDTH);
-  for (i = amount - 1; i >= 0; --i) {
-    if (scores[i]) {
-      r += sprintf(r, "%08zd: ", scores[i]);
+  for (i = amount; i > 0; --i) {
+    if (scores[i - 1]) {
+      r += sprintf(r, "%08zd: ", scores[i - 1]);
       // #ifdef WANT_V6
-      r += fmt_ip6c(r, networks[i]);
+      r += fmt_ip6c(r, networks[i - 1]);
 #if 0
     // XXX
-      r += fmt_ip4( r, networks[i]);
+      r += fmt_ip4( r, networks[i - 1]);
 #endif
       *r++ = '\n';
     }
@@ -315,6 +315,21 @@ typedef struct {
   ot_hash hash;
 } ot_record;
 
+static inline void stats_insert_into_highscore(size_t val, ot_record* list, size_t amount, ot_hash* hash) {
+  size_t i;
+  for (i = 0; (i < amount) && (list[i].val > val); ++i)
+     {}
+  /* if we score better than a record in the list, we need to make room in the high
+     score array by moving lower scoring entries up */
+  if (i < amount) {
+    memmove(list + i + 1, list + i, (amount - i - 1) * sizeof(ot_record));
+
+    memcpy(&list[i].hash, hash, sizeof(ot_hash));
+    list[i].val = val;
+  }
+}
+
+
 /* Fetches stats from tracker */
 size_t stats_top_txt(char *reply, size_t amount) {
   size_t    j, idx, bucket;
@@ -328,6 +343,7 @@ size_t stats_top_txt(char *reply, size_t amount) {
   byte_zero(top100c, sizeof(top100c));
   byte_zero(top100l, sizeof(top100l));
 
+  /* Iterate over complete torrent list */
   for (bucket = 0; bucket < OT_BUCKET_COUNT; ++bucket) {
     ot_vector *torrents_list  = mutex_bucket_lock(bucket);
     for (j = 0; j < torrents_list->size; ++j) {
@@ -335,30 +351,10 @@ size_t stats_top_txt(char *reply, size_t amount) {
       size_t      peer_count  = torrent->peer_list6->peer_count + torrent->peer_list4->peer_count;
       size_t      seed_count  = torrent->peer_list6->seed_count + torrent->peer_list4->seed_count;
       size_t      leech_count = peer_count - seed_count;
-      idx                     = amount - 1;
-      while ((idx >= 0) && (peer_count > top100c[idx].val))
-        --idx;
-      if (idx++ != amount - 1) {
-        memmove(top100c + idx + 1, top100c + idx, (amount - 1 - idx) * sizeof(ot_record));
-        memcpy(&top100c[idx].hash, &torrent->hash, sizeof(ot_hash));
-        top100c[idx].val = peer_count;
-      }
-      idx = amount - 1;
-      while ((idx >= 0) && (seed_count > top100s[idx].val))
-        --idx;
-      if (idx++ != amount - 1) {
-        memmove(top100s + idx + 1, top100s + idx, (amount - 1 - idx) * sizeof(ot_record));
-        memcpy(&top100s[idx].hash, &torrent->hash, sizeof(ot_hash));
-        top100s[idx].val = seed_count;
-      }
-      idx = amount - 1;
-      while ((idx >= 0) && (leech_count > top100l[idx].val))
-        --idx;
-      if (idx++ != amount - 1) {
-        memmove(top100l + idx + 1, top100l + idx, (amount - 1 - idx) * sizeof(ot_record));
-        memcpy(&top100l[idx].hash, &torrent->hash, sizeof(ot_hash));
-        top100l[idx].val = leech_count;
-      }
+
+      stats_insert_into_highscore(peer_count,  top100c, amount, &torrent->hash);
+      stats_insert_into_highscore(seed_count,  top100s, amount, &torrent->hash);
+      stats_insert_into_highscore(leech_count, top100l, amount, &torrent->hash);
     }
     mutex_bucket_unlock(bucket, 0);
     if (!g_opentracker_running)

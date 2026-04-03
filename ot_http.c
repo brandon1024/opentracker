@@ -581,11 +581,11 @@ static ssize_t     http_handle_announce(const int64 sock, struct ot_workstruct *
       len = scan_urlencoded_query(&read_ptr, write_ptr = read_ptr, SCAN_SEARCHPATH_VALUE);
       if ((len <= 0) || scan_fixed_int(write_ptr, len, &tmp))
         HTTPERROR_400_PARAM;
+      if (tmp < 0)
+        tmp = 50;
+      if (tmp > 200)
+        tmp = 200;
       numwant = tmp;
-      if (numwant < 0)
-        numwant = 50;
-      if (numwant > 200)
-        numwant = 200;
       break;
     case 5: /* matched "compact" */
       len = scan_urlencoded_query(&read_ptr, write_ptr = read_ptr, SCAN_SEARCHPATH_VALUE);
