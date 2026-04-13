@@ -741,7 +741,7 @@ void stats_issue_event(ot_status_event event, PROTO_FLAG proto, uintptr_t event_
   }
 }
 
-void stats_cleanup() {
+void stats_cleanup(void) {
 #ifdef WANT_SPOT_WOODPECKER
   pthread_mutex_lock(&g_woodpeckers_mutex);
   stats_shift_down_network_count(&stats_woodpeckers_tree, 0, 1);
@@ -768,11 +768,11 @@ static void *stats_worker(void *args) {
 void stats_deliver(int64 sock, int tasktype) { mutex_workqueue_pushtask(sock, tasktype); }
 
 static pthread_t thread_id;
-void stats_init() {
+void stats_init(void) {
   ot_start_time = g_now_seconds;
   pthread_create(&thread_id, NULL, stats_worker, NULL);
 }
 
-void stats_deinit() {
+void stats_deinit(void) {
     pthread_cancel(thread_id);
 }

@@ -72,7 +72,7 @@ struct ot_log {
 extern ot_log *g_logchain_first, *g_logchain_last;
 
 void           loglist_add_network(const ot_net *net);
-void           loglist_reset();
+void           loglist_reset(void);
 int            loglist_check_address(const ot_ip6 address);
 #endif
 

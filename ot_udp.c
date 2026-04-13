@@ -28,7 +28,7 @@ static uint32_t g_rijndael_round_key[44] = {0};
 static uint32_t g_key_of_the_hour[2]     = {0};
 static ot_time  g_hour_of_the_key;
 
-static void     udp_generate_rijndael_round_key() {
+static void     udp_generate_rijndael_round_key(void) {
   uint32_t key[16];
 #ifdef WANT_ARC4RANDOM
   arc4random_buf(&key[0], sizeof(key));

@@ -48,7 +48,7 @@ void mutex_bucket_unlock_by_hash(ot_hash const hash, int delta_torrentcount) {
   mutex_bucket_unlock(uint32_read_big((char *)hash) >> OT_BUCKET_COUNT_SHIFT, delta_torrentcount);
 }
 
-size_t mutex_get_torrent_count() { return g_torrent_count; }
+size_t mutex_get_torrent_count(void) { return g_torrent_count; }
 
 /* TaskQueue Magic */
 
@@ -253,7 +253,7 @@ int64 mutex_workqueue_popresult(size_t *iovec_entries, struct iovec **iovec, int
   return sock;
 }
 
-void mutex_init() {
+void mutex_init(void) {
   size_t i;
   pthread_mutex_init(&tasklist_mutex, NULL);
   pthread_cond_init(&tasklist_being_filled, NULL);
@@ -262,7 +262,7 @@ void mutex_init() {
   byte_zero(all_torrents, sizeof(all_torrents));
 }
 
-void mutex_deinit() {
+void mutex_deinit(void) {
   size_t i;
   for (i = 0; i < OT_BUCKET_COUNT; ++i)
     pthread_mutex_destroy(bucket_mutex + i);

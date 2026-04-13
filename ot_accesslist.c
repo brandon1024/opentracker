@@ -342,7 +342,7 @@ static void *accesslist_deleter_worker(void *args) {
 #endif
 
 static pthread_t thread_id;
-void accesslist_init() {
+void accesslist_init(void) {
   pthread_mutex_init(&g_accesslist_mutex, NULL);
   pthread_create(&thread_id, NULL, accesslist_worker, NULL);
 #ifdef WANT_DYNAMIC_ACCESSLIST
@@ -444,7 +444,7 @@ void loglist_add_network(const ot_net *net) {
   pthread_mutex_unlock(&g_lognets_list_mutex);
 }
 
-void loglist_reset() {
+void loglist_reset(void) {
   pthread_mutex_lock(&g_lognets_list_mutex);
   free(g_lognets_list.data);
   g_lognets_list.data = 0;

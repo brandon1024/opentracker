@@ -10,8 +10,8 @@
 
 #include "ot_mutex.h"
 
-void fullscrape_init();
-void fullscrape_deinit();
+void fullscrape_init(void);
+void fullscrape_deinit(void);
 void fullscrape_deliver(int64 sock, ot_tasktype tasktype);
 
 #else

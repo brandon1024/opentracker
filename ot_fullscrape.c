@@ -88,11 +88,11 @@ static void *fullscrape_worker(void *args) {
 }
 
 static pthread_t thread_id;
-void fullscrape_init( ) {
+void fullscrape_init(void) {
   pthread_create( &thread_id, NULL, fullscrape_worker, NULL );
 }
 
-void fullscrape_deinit( ) {
+void fullscrape_deinit(void) {
   pthread_cancel( thread_id );
 }
 

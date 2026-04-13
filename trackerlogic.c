@@ -552,7 +552,7 @@ void exerr(char *message) {
   exit(111);
 }
 
-void trackerlogic_init() {
+void trackerlogic_init(void) {
   g_tracker_id = random();
 
   if (!g_stats_path)
