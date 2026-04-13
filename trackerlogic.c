@@ -262,7 +262,7 @@ static size_t return_peers_selection(struct ot_workstruct *ws, ot_peerlist *peer
       bucket_offset -= bucket_list[bucket_index].size;
       bucket_index   = (bucket_index + 1) % num_buckets;
     }
-    peer = bucket_list[bucket_index].data + peer_size * bucket_offset;
+    peer = (ot_peer*)bucket_list[bucket_index].data + peer_size * bucket_offset;
     if (OT_PEERFLAG_D(peer, peer_size) & PEER_FLAG_SEEDING) {
       r_end -= compare_size;
       memcpy(r_end, peer, compare_size);
