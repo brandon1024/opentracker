@@ -25,8 +25,8 @@
 static const uint8_t g_static_connid[8] = { 0x23, 0x42, 0x05, 0x17, 0xde, 0x41, 0x50, 0xff };
 #endif
 static uint32_t g_rijndael_round_key[44] = {0};
-static uint32_t g_key_of_the_hour[2]     = {0};
-static ot_time  g_hour_of_the_key;
+static volatile uint32_t g_key_of_the_hour[2] = {0};
+static volatile ot_time  g_hour_of_the_key;
 
 static void     udp_generate_rijndael_round_key(void) {
   uint32_t key[16];
@@ -52,19 +52,29 @@ static void     udp_generate_rijndael_round_key(void) {
 static void udp_make_connectionid(uint32_t connid[2], const ot_ip6 remoteip, int age) {
   uint32_t plain[4], crypt[4];
   int      i;
+  uint32_t current_key_of_the_hour;
+
   if (g_now_minutes - g_hour_of_the_key >= 60) {
-    g_hour_of_the_key    = g_now_minutes;
-    g_key_of_the_hour[1] = g_key_of_the_hour[0];
+    uint32_t old_key_of_the_hour = g_key_of_the_hour[0];
 #ifdef WANT_ARC4RANDOM
-    g_key_of_the_hour[0] = arc4random();
+    uint32_t new_key_of_the_hour = arc4random();
 #else
-    g_key_of_the_hour[0] = random();
+    uint32_t new_key_of_the_hour = random();
 #endif
+    /* If in the meantime another thread has performed
+       key rotation, do not overwrite their results */
+    if (g_now_minutes - g_hour_of_the_key >= 60) {
+      /* Upgrade en bloc */
+      g_hour_of_the_key    = g_now_minutes;
+      g_key_of_the_hour[0] = new_key_of_the_hour;
+      g_key_of_the_hour[1] = old_key_of_the_hour;
+    }
   }
 
   memcpy(plain, remoteip, sizeof(plain));
+  current_key_of_the_hour = g_key_of_the_hour[age];
   for (i = 0; i < 4; ++i)
-    plain[i] ^= g_key_of_the_hour[age];
+    plain[i] ^= current_key_of_the_hour;
   rijndaelEncrypt128(g_rijndael_round_key, (uint8_t *)plain, (uint8_t *)crypt);
   connid[0] = crypt[0] ^ crypt[1];
   connid[1] = crypt[2] ^ crypt[3];
