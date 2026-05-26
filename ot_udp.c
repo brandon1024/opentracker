@@ -52,7 +52,7 @@ static void     udp_generate_rijndael_round_key(void) {
 static void udp_make_connectionid(uint32_t connid[2], const ot_ip6 remoteip, int age) {
   uint32_t plain[4], crypt[4];
   int      i;
-  if (g_now_minutes + 60 > g_hour_of_the_key) {
+  if (g_now_minutes - g_hour_of_the_key >= 60) {
     g_hour_of_the_key    = g_now_minutes;
     g_key_of_the_hour[1] = g_key_of_the_hour[0];
 #ifdef WANT_ARC4RANDOM
@@ -65,7 +65,7 @@ static void udp_make_connectionid(uint32_t connid[2], const ot_ip6 remoteip, int
   memcpy(plain, remoteip, sizeof(plain));
   for (i = 0; i < 4; ++i)
     plain[i] ^= g_key_of_the_hour[age];
-  rijndaelEncrypt128(g_rijndael_round_key, (uint8_t *)remoteip, (uint8_t *)crypt);
+  rijndaelEncrypt128(g_rijndael_round_key, (uint8_t *)plain, (uint8_t *)crypt);
   connid[0] = crypt[0] ^ crypt[1];
   connid[1] = crypt[2] ^ crypt[3];
 }
